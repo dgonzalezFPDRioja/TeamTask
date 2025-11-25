@@ -66,15 +66,12 @@ if ($metodo === 'POST') {
         ]);
         exit;
     } catch (PDOException $e) {
-    //Si la respuesta tiene un codigo 23000 significa que el correo esta duplicado
-    if ($e->getCode() == '23000') {
-        http_response_code(409);
-        echo json_encode(["mensaje" => "El correo ya esta registrado"]);
-        exit;
-    }
-    //Si recibo error 500 saco error de BBDD
+    //Devuelvo el error
     http_response_code(500);
-    echo json_encode(["mensaje" => "Error en la base de datos"]);
+    echo json_encode([
+        "codigo" => $e->getCode(),
+        "error"  => $e->getMessage()
+    ]);
     exit;
     }
 }
@@ -183,11 +180,11 @@ if ($metodo === 'DELETE') {
         }
         exit;
     } catch (PDOException $e) {
-        //Si recibo error 500 saco error de BBDD
+        //Devuelvo el error
         http_response_code(500);
         echo json_encode([
-            "mensaje" => "Error en la base de datos al eliminar el usuario",
-            "error" => $e->getMessage()
+            "codigo" => $e->getCode(),
+            "error"  => $e->getMessage()
         ]);
         exit;
     }

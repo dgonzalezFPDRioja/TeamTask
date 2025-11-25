@@ -1,5 +1,5 @@
 <?php
-// api/tareas.php
+
 require_once __DIR__ . '/config/headers.php';
 require_once __DIR__ . '/config/db.php';
 
