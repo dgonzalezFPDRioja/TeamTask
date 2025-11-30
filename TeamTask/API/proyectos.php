@@ -31,11 +31,46 @@ if ($metodo === 'GET') {
         }
     } else {
         //Si la query no tiene ID devuelve toda la lsita de proyecto
-        $sentSQL = $conn->query("SELECT * FROM usuarios ORDER BY id DESC");
+        $sentSQL = $conn->query("SELECT * FROM proyectos ORDER BY id asc");
         $proyectos = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($proyectos);
     }
     exit;
+}
+
+//*****POST proyectos_usuarios | Asignar un proyecto a un usuario
+if ($metodo === 'POST' && isset($_GET['accion']) && $_GET['accion'] === 'asignar') {
+
+    //Usuario autenticado
+    $usuario_id = $creador_id; //getUserIdFromToken($conn);
+
+    $proyecto_id   = $input['proyecto_id']   ?? null;
+    $usuario_id = $input['usuario_id'] ?? null;
+
+    try {
+        //Sentencia SQL
+        $sentSQL = $conn->prepare("INSERT INTO proyectos_usuarios (proyecto_id, usuario_id) VALUES (?, ?)");
+        $sentSQL->execute([$proyecto_id, $usuario_id]);
+        //Mensaje de asignacion correcta
+        http_response_code(201);
+        echo json_encode([
+            "mensaje" => "Usuario asignado al proyecto",
+            "asignacion" => [
+                "tarea_id"   => (int)$proyecto_id,
+                "usuario_id" => (int)$usuario_id
+            ]
+        ]);
+        exit;
+
+    } catch (PDOException $e) {
+        //Mensaje de error
+        http_response_code(response_code: 500);
+        echo json_encode([
+            "mensaje" => "Error asignando el proyecto",
+            "error" => $e->getMessage()
+        ]);
+        exit;
+    }
 }
 
 //*****METODO POST | Creacion de proyectos
@@ -132,7 +167,41 @@ if ($metodo === 'PUT') {
     exit;
 }
 
-//*****METODO DELETE | Paso un correo para eliminar el usuario
+//*****DELETE proyecto_usuarios| Borrar asignacion de proyecto
+if ($metodo === 'DELETE' && isset($_GET['accion']) && $_GET['accion'] === 'desasignar') {
+    //Usuario autenticado
+    $usuario_id = $creador_id; //getUserIdFromToken($conn);
+
+    //Pillo tarea y usuario
+    $proyecto_id = $input['proyecto_id'];
+    $usuario_id = $input['usuario_id'];
+
+    try {
+        //Sentencia SQL
+        $sentSQL = $conn->prepare("DELETE FROM proyectos_usuarios WHERE proyecto_id = ? AND usuario_id = ?");
+        $sentSQL->execute([$proyecto_id, $usuario_id]);
+
+        //Mensaje de eliminacion correcta
+        http_response_code(200);
+        echo json_encode([
+            "mensaje" => "Asignación eliminada correctamente",
+            "proyecto_id" => $proyecto_id,
+            "usuario_id" => $usuario_id
+        ]);
+        exit;
+        
+    } catch (PDOException $e) {
+        //Mensaje de error
+        http_response_code(500);
+        echo json_encode([
+            "mensaje" => "Error eliminando la asignacion",
+            "error" => $e->getMessage()
+        ]);
+        exit;
+    }
+}
+
+//*****METODO DELETE | Paso un nonbre para eliminar el proyecto
 if ($metodo === 'DELETE') {
     //Compruebo si si ha passado un nombre
     if (empty($input['nombre'])) {
@@ -179,6 +248,7 @@ if ($metodo === 'DELETE') {
         exit;
     }
 }
+
 
 //Para cualquier metodo raro
 http_response_code(405);
