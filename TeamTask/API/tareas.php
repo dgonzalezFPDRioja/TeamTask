@@ -1,23 +1,27 @@
 <?php
 //API para las tareas de la base de datos
 
+//Incluyo archivos php cabeceras/conexion/autenticación
 require_once __DIR__ . '/config/headers.php';
 require_once __DIR__ . '/config/db.php';
-//require_once 'auth_middleware.php';
-$creador_id = 1;
+require_once __DIR__ . '/autenticacion.php';
+
+//Consigo los datos del usuario logueado
+$usuarioLogueado = getUsuarioDeToken($conn);
+$rol = $usuarioLogueado['rol'];
+
+//Leo el metodo utilizado de peticion, leo la peticion y lo convierto en array
 $metodo = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents("php://input"), true);
 
 //*****GET | Listar las tareas de un usuario
 if ($metodo === 'GET' && isset($_GET['accion']) && $_GET['accion'] === 'mis') {
     try {
-        //Usuario autenticado
-        $usuario_id = $creador_id; //getUserIdFromToken($conn);
-
         //Snetencia SQL
-        $sentSQL = $conn->prepare("SELECT t.* FROM tareas t INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id WHERE ta.usuario_id = ? ORDER BY t.fecha_creacion DESC");
-
-        $sentSQL->execute([$usuario_id]);
+        $sentSQL = $conn->prepare("SELECT t.* FROM tareas t 
+        INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id 
+        WHERE ta.usuario_id = ? ORDER BY t.fecha_creacion DESC");
+        $sentSQL->execute([$usuarioLogueado['id']]);
         $tareas = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
 
         echo json_encode($tareas);
@@ -27,43 +31,81 @@ if ($metodo === 'GET' && isset($_GET['accion']) && $_GET['accion'] === 'mis') {
         http_response_code(500);
         echo json_encode([
             "mensaje" => "Error obteniendo las tareas",
-            "error" => $e->getMessage()
+            //DEPURACION
+            //"error" => $e->getMessage()
         ]);
         exit;
     }
 }
 
-//*****GET | Listar las tareas con id concreto
-if ($metodo === 'GET') {
-    if (isset($_GET['id'])) {
-        $id = $_GET['id'];
-        $stmt = $conn->prepare("SELECT * FROM tareas WHERE id = ?");
-        $stmt->execute([$id]);
-        $tarea = $stmt->fetch(PDO::FETCH_ASSOC);
+//*****GET | Tareas asignadas al usuario en proyecto
+if ($metodo === 'GET' && isset($_GET['proyecto_id'])) {
+    //id del proyecto pasado
+    $proyectoId = $_GET['proyecto_id'];
+    try {
+        //Sentencia SQL
+        $sentSQL = $conn->prepare("SELECT t.* FROM tareas t
+        INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id
+        WHERE t.proyecto_id = ? AND ta.usuario_id = ? ORDER BY t.id DESC");
+        $sentSQL->execute([$proyectoId, $usuarioLogueado['id']]);
+        $tareas = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
+        //Paso las tareas
+        echo json_encode($tareas);
+        exit;
+    } catch (PDOException $e) {
+        //Error en la BBDD
+        http_response_code(500);
+        echo json_encode([
+            "mensaje" => "Error obteniendo las tareas",
+            //DEPURACION
+            //"error" => $e->getMessage()
+        ]);
+        exit;
+    }
+}
 
+//*****GET | Informacion de la tarea por ID
+if ($metodo === 'GET' && isset($_GET['id'])) {
+    //Id de la tarea pasada
+    $tareaId = $_GET['id'];
+    try {
+        //Sentencia SQL
+        $sentSQL = $conn->prepare("SELECT * FROM tareas WHERE id = ?");
+        $sentSQL->execute([$tareaId]);
+        $tarea = $sentSQL->fetch(PDO::FETCH_ASSOC);
+        //Paso la tarea, si no encuentro mando un error
         if ($tarea) {
             echo json_encode($tarea);
         } else {
             http_response_code(404);
             echo json_encode(["mensaje" => "Tarea no encontrada"]);
         }
-    } else {
-        // todas las tareas
-        $stmt = $conn->query("SELECT * FROM tareas ORDER BY id DESC");
-        $tareas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($tareas);
+        exit;
+    } catch (PDOException $e) {
+        //Error en la BBDD
+        http_response_code(500);
+        echo json_encode([
+            "mensaje" => "Error obteniendo las tareas",
+            //DEPURACION
+            //"error" => $e->getMessage()
+        ]);
+        exit;
     }
-    exit;
 }
 
 //*****POST | Asignar una tarea a un usuario
 if ($metodo === 'POST' && isset($_GET['accion']) && $_GET['accion'] === 'asignar') {
 
-    //Usuario autenticado
-    $usuario_id = $creador_id; //getUserIdFromToken($conn);
-
+    //Asigno ID tarea y usuario
     $tarea_id   = $input['tarea_id']   ?? null;
     $usuario_id = $input['usuario_id'] ?? null;
+
+    //Compruebo que me llegan ID de tarea y usuario
+    if ($tarea_id === null || $usuario_id === null) {
+        http_response_code(400);
+        echo json_encode(["mensaje" => "Falta el ID de tarea o usuario"]);
+        exit;
+    }
 
     try {
         //Sentencia SQL
@@ -79,7 +121,6 @@ if ($metodo === 'POST' && isset($_GET['accion']) && $_GET['accion'] === 'asignar
             ]
         ]);
         exit;
-
     } catch (PDOException $e) {
         //Mensaje de error
         http_response_code(500);
@@ -93,9 +134,7 @@ if ($metodo === 'POST' && isset($_GET['accion']) && $_GET['accion'] === 'asignar
 
 //*****POST | Crear una tarea
 if ($metodo === 'POST') {
-    //Usuario autenticado
-    $usuario_id = $creador_id; //getUserIdFromToken($conn);
-
+    //Compruebo si se pasa el titulo
     if (empty($input['titulo'])) {
         http_response_code(400);
         echo json_encode(["mensaje" => "Falta el nombre"]);
@@ -114,20 +153,20 @@ if ($metodo === 'POST') {
     try {
         //Sentencia SQL
         $sentSQL = $conn->prepare("INSERT INTO tareas (proyecto_id, titulo, descripcion, estado, prioridad, fecha_limite, creador_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $sentSQL->execute([$proyecto_id,$titulo,$descripcion,$estado,$prioridad,$fecha_limite,$creador_id]);
+        $sentSQL->execute([$proyecto_id, $titulo, $descripcion, $estado, $prioridad, $fecha_limite, $usuarioLogueado['id']]);
         $tarea_id = $conn->lastInsertId();
         //Mensaje para la creacion correcta de la tarea
         http_response_code(201);
         echo json_encode([
             "mensaje" => "Tarea creada correctamente",
             "tarea" => [
-                "proyecto_id"=> $proyecto_id,
-                "titulo"=> $titulo,
-                "descripcion"=> $descripcion,
-                "estado"=> $estado,
-                "prioridad"=> $prioridad,
-                "fecha_limite"=> $fecha_limite,
-                "creador_id"=> $creador_id
+                "proyecto_id" => $proyecto_id,
+                "titulo" => $titulo,
+                "descripcion" => $descripcion,
+                "estado" => $estado,
+                "prioridad" => $prioridad,
+                "fecha_limite" => $fecha_limite,
+                "creador_id" => $usuarioLogueado['id']
             ]
         ]);
         exit;
@@ -142,8 +181,7 @@ if ($metodo === 'POST') {
     }
 }
 
-
-//*****PUT
+//*****PUT  | Modificar tarea
 if ($metodo === 'PUT') {
     if (!isset($input['id'])) {
         http_response_code(400);
@@ -152,35 +190,52 @@ if ($metodo === 'PUT') {
     }
 
     $id = $input['id'];
-    $titulo = $input['titulo'] ?? null;
-    $descripcion = $input['descripcion'] ?? null;
-    $estado = $input['estado'] ?? null;
 
-    $stmt = $conn->prepare("SELECT * FROM tareas WHERE id = ?");
-    $stmt->execute([$id]);
-    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
-        http_response_code(404);
-        echo json_encode(["mensaje" => "Tarea no encontrada"]);
+
+    try {
+
+        //Hago un select para saber los datos de la tarea actual que voy a modificar
+        $sentSQL = $conn->prepare("SELECT * FROM tareas WHERE id = ?");
+        $sentSQL->execute([$id]);
+        $tareaActual = $sentSQL->fetch(PDO::FETCH_ASSOC);
+
+        //Si esta vacio mando error
+        if (!$tareaActual) {
+            http_response_code(404);
+            echo json_encode(["mensaje" => "Tarea no encontrada"]);
+            exit;
+        }
+
+        //Si el input del usuario esta vacio devuelvo los datos actuales
+        $titulo = $input['titulo'] ?? $tareaActual['titulo'];
+        $descripcion = $input['descripcion'] ?? $tareaActual['descripcion'];
+        $estado = $input['estado'] ?? $tareaActual['estado'];
+
+        //Update de la tarea
+        $sentSQL = $conn->prepare("UPDATE tareas SET titulo = ?, descripcion = ?, estado = ? WHERE id = ?");
+        $sentSQL->execute([$titulo, $descripcion, $estado, $id]);
+
+        echo json_encode([
+            "id" => $id,
+            "titulo" => $titulo,
+            "descripcion" => $descripcion,
+            "estado" => $estado
+        ]);
+        exit;
+    } catch (PDOException $e) {
+        //Error en la BBDD
+        http_response_code(500);
+        echo json_encode([
+            "mensaje" => "Error modificando las tareas",
+            //DEPURACION
+            //"error" => $e->getMessage()
+        ]);
         exit;
     }
-
-    $stmt = $conn->prepare("UPDATE tareas SET titulo = ?, descripcion = ?, estado = ? WHERE id = ?");
-    $stmt->execute([$titulo, $descripcion, $estado, $id]);
-
-    echo json_encode([
-        "id" => $id,
-        "titulo" => $titulo,
-        "descripcion" => $descripcion,
-        "estado" => $estado
-    ]);
-    exit;
 }
 
 //*****DELETE | Borrar asignacion de tarea
 if ($metodo === 'DELETE' && isset($_GET['accion']) && $_GET['accion'] === 'desasignar') {
-    //Usuario autenticado
-    $usuario_id = $creador_id; //getUserIdFromToken($conn);
-
     //Pillo tarea y usuario
     $tarea_id = $input['tarea_id'];
     $usuario_id = $input['usuario_id'];
@@ -198,7 +253,6 @@ if ($metodo === 'DELETE' && isset($_GET['accion']) && $_GET['accion'] === 'desas
             "usuario_id" => $usuario_id
         ]);
         exit;
-        
     } catch (PDOException $e) {
         //Mensaje de error
         http_response_code(500);
@@ -210,9 +264,14 @@ if ($metodo === 'DELETE' && isset($_GET['accion']) && $_GET['accion'] === 'desas
     }
 }
 
-
 //*****DELETE | Borrar tarea
 if ($metodo === 'DELETE') {
+    //Compruebo que me llega ID de tarea
+    if (!isset($input['tarea_id'])) {
+        http_response_code(400);
+        echo json_encode(["mensaje" => "Falta Id de tarea"]);
+        exit;
+    }
     $tarea_id = $input['tarea_id'];
 
     try {
