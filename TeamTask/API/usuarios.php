@@ -14,6 +14,70 @@ $rol = $usuarioLogueado['rol'];
 $metodo = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents("php://input"), true);
 
+//*****METODO GET | Datos del usuario logueado
+if ($metodo === 'GET' && isset($_GET['me'])) {
+    $datosUsuario = [
+        "id"     => $usuarioLogueado['id'],
+        "nombre" => $usuarioLogueado['nombre'],
+        "correo" => $usuarioLogueado['correo'],
+        "rol"    => $usuarioLogueado['rol']
+    ];
+    echo json_encode($datosUsuario);
+    exit;
+}
+
+//*****METODO GET | Cambio de contraseña del usuario
+if ($metodo === 'PUT' && isset($_GET['cambiar_contra'])) {
+    $contraActual = $input['password_actual'] ?? null;
+    $contraNueva  = $input['password_nueva'] ?? null;
+
+    //Aviso si faltan las contraseña
+    if (empty($contraActual) || empty($contraNueva)) {
+        http_response_code(400);
+        echo json_encode(["mensaje" => "Faltan contraseña actual o nueva"]);
+        exit;
+    }
+
+    //Compruebo la contraseña actual del usuario logueado
+    $sentSQL = $conn->prepare("SELECT contrasena_hash FROM usuarios WHERE id = ?");
+    $sentSQL->execute([$usuarioLogueado['id']]);
+    $usuario = $sentSQL->fetch(PDO::FETCH_ASSOC);
+
+    //Compruebo el hash de la contraseña pasada para comprobar
+    if (!$usuario || !password_verify($contraActual, $usuario['contrasena_hash'])) {
+        http_response_code(401);
+        echo json_encode(["mensaje" => "La contraseña no es correcta"]);
+        exit;
+    }
+
+    //Actualizo la contraseña
+    $nuevoHash = password_hash($contraNueva, PASSWORD_BCRYPT);
+    $upd = $conn->prepare("UPDATE usuarios SET contrasena_hash = ? WHERE id = ?");
+    $upd->execute([$nuevoHash, $usuarioLogueado['id']]);
+
+    echo json_encode(["mensaje" => "Contraseña actualizada"]);
+    exit;
+}
+
+//*****METODO GET | Usuarios por proyecto
+if ($metodo === 'GET' && isset($_GET['proyecto_id'])) {
+    //Pillo el id del proyecto
+    $proyectoId = $_GET['proyecto_id'];
+
+    //Sentencia sql para sacar los usuarios en un proyecto
+    $sentSQL = $conn->prepare("SELECT u.id, u.nombre, u.correo, u.rol, pu.rol_en_proyecto FROM proyectos_usuarios pu 
+        INNER JOIN usuarios u ON u.id = pu.usuario_id 
+        WHERE pu.proyecto_id = ?
+        ORDER BY u.nombre ASC
+    ");
+    $sentSQL->execute([$proyectoId]);
+    $usuarios = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
+
+    //Devuelvo la lista de usuarios
+    echo json_encode($usuarios);
+    exit;
+}
+
 //*****METODO GET | Si paso un ID devuelve el usuario concreto, si no pasa la lista de usuarios
 if ($metodo === 'GET') {
     //Comprueba si la query tiene un id
