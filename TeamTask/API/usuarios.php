@@ -1,10 +1,16 @@
 <?php
 //API para los usuarios de la base de datos
 
+//Incluyo archivos php cabeceras/conexion/autenticación
 require_once __DIR__ . '/config/headers.php';
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/autenticacion.php';
 
-//Pillo el metodo utilizado
+//Consigo los datos del usuario logueado
+$usuarioLogueado = getUsuarioDeToken($conn);
+$rol = $usuarioLogueado['rol'];
+
+//Leo el metodo utilizado de peticion, leo la peticion y lo convierto en array
 $metodo = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents("php://input"), true);
 
@@ -15,7 +21,7 @@ if ($metodo === 'GET') {
         //Añade el id a la variable
         $id = $_GET['id'];
         //Sentencia SQL
-        $sentSQL = $conn->prepare("SELECT * FROM usuarios WHERE id = ?");
+        $sentSQL = $conn->prepare("SELECT id, nombre, correo, rol FROM usuarios WHERE id = ?");
         //Paso el parametro id
         $sentSQL->execute([$id]);
         $usuario = $sentSQL->fetch(PDO::FETCH_ASSOC);
@@ -29,7 +35,7 @@ if ($metodo === 'GET') {
         }
     } else {
         //Si la query no tiene ID devuelve toda la lsita de usuarios
-        $sentSQL = $conn->query("SELECT * FROM usuarios ORDER BY id DESC");
+        $sentSQL = $conn->query("SELECT id, nombre, correo, rol FROM usuarios ORDER BY id DESC");
         $usuarios = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($usuarios);
     }
@@ -68,17 +74,19 @@ if ($metodo === 'POST') {
     } catch (PDOException $e) {
     //Devuelvo el error
     http_response_code(500);
+    echo json_encode(["mensaje" => "Error interno del servidor"]);
+    /*DEPURACION DESARROLLO
     echo json_encode([
         "codigo" => $e->getCode(),
         "error"  => $e->getMessage()
-    ]);
+    ]);*/
     exit;
     }
 }
 
 //*****METODO PUT | Modificacion de usuarios
 if ($metodo === 'PUT') {
-    //El campo nombre o correo esta vacio manda un error 400
+    //El campo correo esta vacio manda un error 400
     if (empty($input['correo'])) {
         http_response_code(400);
         echo json_encode(["mensaje" => "Falta el correo"]);
@@ -88,7 +96,7 @@ if ($metodo === 'PUT') {
     //Si no se manda correo nuevo, se queda el mismo
     $nuevoCorreo = $input['nuevo_correo'] ?? $correo;
     $nombre = $input['nombre'] ?? null;
-    $contra = $input['contrasena_hash'] ?? null;
+    $contrasena = $input['contrasena'] ?? null;
     $rol = $input['rol'] ?? null;
     //Comprobacion que existe el usuario
     $sentSQL = $conn->prepare("SELECT * FROM usuarios WHERE correo = ?");
@@ -111,9 +119,9 @@ if ($metodo === 'PUT') {
         $campos[] = "nombre = ?";
         $valores[] = $nombre;
     }
-    if ($contra !== null) {
+    if ($contrasena !== null) {
         $campos[] = "contrasena_hash = ?";
-        $valores[] = $contra;
+        $valores[] = password_hash($contrasena, PASSWORD_BCRYPT);
     }
     if ($rol !== null) {
         $campos[] = "rol = ?";
@@ -182,10 +190,12 @@ if ($metodo === 'DELETE') {
     } catch (PDOException $e) {
         //Devuelvo el error
         http_response_code(500);
+        echo json_encode(["mensaje" => "Error interno del servidor"]);
+    /*DEPURACION DESARROLLO
         echo json_encode([
             "codigo" => $e->getCode(),
             "error"  => $e->getMessage()
-        ]);
+        ]);*/
         exit;
     }
 }
