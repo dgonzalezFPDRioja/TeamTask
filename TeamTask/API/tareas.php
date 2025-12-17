@@ -38,22 +38,23 @@ if ($metodo === 'GET' && isset($_GET['accion']) && $_GET['accion'] === 'mis') {
     }
 }
 
-//*****GET | Tareas asignadas al usuario en proyecto
+//*****GET | Tareas del proyecto (para admin todas, para usuario solo sus asignadas)
 if ($metodo === 'GET' && isset($_GET['proyecto_id'])) {
-    //id del proyecto pasado
     $proyectoId = $_GET['proyecto_id'];
     try {
-        //Sentencia SQL
-        $sentSQL = $conn->prepare("SELECT t.* FROM tareas t
-        INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id
-        WHERE t.proyecto_id = ? AND ta.usuario_id = ? ORDER BY t.id DESC");
-        $sentSQL->execute([$proyectoId, $usuarioLogueado['id']]);
+        if (strtoupper($rol) === 'ADMIN') {
+            $sentSQL = $conn->prepare("SELECT * FROM tareas WHERE proyecto_id = ? ORDER BY id DESC");
+            $sentSQL->execute([$proyectoId]);
+        } else {
+            $sentSQL = $conn->prepare("SELECT t.* FROM tareas t
+            INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id
+            WHERE t.proyecto_id = ? AND ta.usuario_id = ? ORDER BY t.id DESC");
+            $sentSQL->execute([$proyectoId, $usuarioLogueado['id']]);
+        }
         $tareas = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
-        //Paso las tareas
         echo json_encode($tareas);
         exit;
     } catch (PDOException $e) {
-        //Error en la BBDD
         http_response_code(500);
         echo json_encode([
             "mensaje" => "Error obteniendo las tareas",
@@ -160,6 +161,7 @@ if ($metodo === 'POST') {
         echo json_encode([
             "mensaje" => "Tarea creada correctamente",
             "tarea" => [
+                "id" => (int)$tarea_id,
                 "proyecto_id" => $proyecto_id,
                 "titulo" => $titulo,
                 "descripcion" => $descripcion,
