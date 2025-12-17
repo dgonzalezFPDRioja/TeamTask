@@ -26,39 +26,6 @@ if ($metodo === 'GET' && isset($_GET['me'])) {
     exit;
 }
 
-//*****METODO GET | Cambio de contraseña del usuario
-if ($metodo === 'PUT' && isset($_GET['cambiar_contra'])) {
-    $contraActual = $input['password_actual'] ?? null;
-    $contraNueva  = $input['password_nueva'] ?? null;
-
-    //Aviso si faltan las contraseña
-    if (empty($contraActual) || empty($contraNueva)) {
-        http_response_code(400);
-        echo json_encode(["mensaje" => "Faltan contraseña actual o nueva"]);
-        exit;
-    }
-
-    //Compruebo la contraseña actual del usuario logueado
-    $sentSQL = $conn->prepare("SELECT contrasena_hash FROM usuarios WHERE id = ?");
-    $sentSQL->execute([$usuarioLogueado['id']]);
-    $usuario = $sentSQL->fetch(PDO::FETCH_ASSOC);
-
-    //Compruebo el hash de la contraseña pasada para comprobar
-    if (!$usuario || !password_verify($contraActual, $usuario['contrasena_hash'])) {
-        http_response_code(401);
-        echo json_encode(["mensaje" => "La contraseña no es correcta"]);
-        exit;
-    }
-
-    //Actualizo la contraseña
-    $nuevoHash = password_hash($contraNueva, PASSWORD_BCRYPT);
-    $upd = $conn->prepare("UPDATE usuarios SET contrasena_hash = ? WHERE id = ?");
-    $upd->execute([$nuevoHash, $usuarioLogueado['id']]);
-
-    echo json_encode(["mensaje" => "Contraseña actualizada"]);
-    exit;
-}
-
 //*****METODO GET | Usuarios por proyecto
 if ($metodo === 'GET' && isset($_GET['proyecto_id'])) {
     //Pillo el id del proyecto
@@ -146,6 +113,39 @@ if ($metodo === 'POST') {
     ]);*/
     exit;
     }
+}
+
+//*****METODO PUT | Cambio de contraseña del usuario
+if ($metodo === 'PUT' && isset($_GET['cambiar_contra'])) {
+    $contraActual = $input['password_actual'] ?? null;
+    $contraNueva  = $input['password_nueva'] ?? null;
+
+    //Aviso si faltan las contraseña
+    if (empty($contraActual) || empty($contraNueva)) {
+        http_response_code(400);
+        echo json_encode(["mensaje" => "Faltan contraseña actual o nueva"]);
+        exit;
+    }
+
+    //Compruebo la contraseña actual del usuario logueado
+    $sentSQL = $conn->prepare("SELECT contrasena_hash FROM usuarios WHERE id = ?");
+    $sentSQL->execute([$usuarioLogueado['id']]);
+    $usuario = $sentSQL->fetch(PDO::FETCH_ASSOC);
+
+    //Compruebo el hash de la contraseña pasada para comprobar
+    if (!$usuario || !password_verify($contraActual, $usuario['contrasena_hash'])) {
+        http_response_code(401);
+        echo json_encode(["mensaje" => "La contraseña no es correcta"]);
+        exit;
+    }
+
+    //Actualizo la contraseña
+    $nuevoHash = password_hash($contraNueva, PASSWORD_BCRYPT);
+    $upd = $conn->prepare("UPDATE usuarios SET contrasena_hash = ? WHERE id = ?");
+    $upd->execute([$nuevoHash, $usuarioLogueado['id']]);
+
+    echo json_encode(["mensaje" => "Contraseña actualizada"]);
+    exit;
 }
 
 //*****METODO PUT | Modificacion de usuarios
