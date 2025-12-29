@@ -1,0 +1,55 @@
+/*//Aplico un tema azul oscuro personalizado*/
+body {
+  background-color: #0A192F !important;
+  color: #E6F1FF;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Estética de cards */
+.custom-card {
+  background-color: #112240 !important;
+  color: #E6F1FF !important;
+  border: none !important;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Textos más suaves */
+.text-light-muted {
+  color: #8892B0 !important;
+}
+
+/* Botón principal azul moderno */
+.btn-primary {
+  background-color: #3A86FF !important;
+  border-color: #3A86FF !important;
+  border-radius: 8px !important;
+}
+
+.btn-primary:hover {
+  background-color: #2f6ed4 !important;
+}
+
+/* Botón de peligro (logout) */
+.btn-danger {
+  background-color: #d9534f !important;
+  border-color: #d9534f !important;
+  border-radius: 8px !important;
+}
+
+/* Inputs minimalistas */
+.form-control {
+  background-color: #0A192F !important;
+  color: #E6F1FF !important;
+  border: 1px solid #3A86FF !important;
+  border-radius: 8px !important;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 2px rgba(58,134,255,0.5) !important;
+}
+
+.card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}

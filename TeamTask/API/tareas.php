@@ -43,12 +43,19 @@ if ($metodo === 'GET' && isset($_GET['proyecto_id'])) {
     $proyectoId = $_GET['proyecto_id'];
     try {
         if (strtoupper($rol) === 'ADMIN') {
-            $sentSQL = $conn->prepare("SELECT * FROM tareas WHERE proyecto_id = ? ORDER BY id DESC");
+            $sentSQL = $conn->prepare("SELECT t.*, GROUP_CONCAT(ta.usuario_id) AS usuario_ids
+            FROM tareas t
+            LEFT JOIN tareas_asignadas ta ON t.id = ta.tarea_id
+            WHERE t.proyecto_id = ?
+            GROUP BY t.id
+            ORDER BY t.id DESC");
             $sentSQL->execute([$proyectoId]);
         } else {
-            $sentSQL = $conn->prepare("SELECT t.* FROM tareas t
+            $sentSQL = $conn->prepare("SELECT t.*, GROUP_CONCAT(ta.usuario_id) AS usuario_ids FROM tareas t
             INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id
-            WHERE t.proyecto_id = ? AND ta.usuario_id = ? ORDER BY t.id DESC");
+            WHERE t.proyecto_id = ? AND ta.usuario_id = ?
+            GROUP BY t.id
+            ORDER BY t.id DESC");
             $sentSQL->execute([$proyectoId, $usuarioLogueado['id']]);
         }
         $tareas = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
@@ -88,6 +95,69 @@ if ($metodo === 'GET' && isset($_GET['id'])) {
         echo json_encode([
             "mensaje" => "Error obteniendo las tareas",
             //DEPURACION
+            //"error" => $e->getMessage()
+        ]);
+        exit;
+    }
+}
+
+//*****GET | Comentarios de la tarea
+if ($metodo === 'GET' && isset($_GET['accion']) && $_GET['accion'] === 'comentarios') {
+    $tareaId = $_GET['tarea_id'] ?? null;
+    if (!$tareaId) {
+        http_response_code(400);
+        echo json_encode(["mensaje" => "Falta tarea_id"]);
+        exit;
+    }
+    try {
+        $sentSQL = $conn->prepare("SELECT c.id, c.contenido AS texto, c.fecha_creacion, c.autor_id AS usuario_id, u.nombre AS autor
+        FROM comentarios c
+        LEFT JOIN usuarios u ON u.id = c.autor_id
+        WHERE c.tarea_id = ?
+        ORDER BY c.fecha_creacion DESC");
+        $sentSQL->execute([$tareaId]);
+        $comentarios = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode($comentarios);
+        exit;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            "mensaje" => "Error obteniendo comentarios",
+            //"error" => $e->getMessage()
+        ]);
+        exit;
+    }
+}
+
+//*****POST | Agregar comentario a tarea
+if ($metodo === 'POST' && isset($_GET['accion']) && $_GET['accion'] === 'comentarios') {
+    $tarea_id = $input['tarea_id'] ?? null;
+    $texto = isset($input['texto']) ? trim($input['texto']) : '';
+    if (!$tarea_id || $texto === '') {
+        http_response_code(400);
+        echo json_encode(["mensaje" => "Faltan datos de comentario"]);
+        exit;
+    }
+    try {
+        $sentSQL = $conn->prepare("INSERT INTO comentarios (tarea_id, autor_id, contenido, fecha_creacion) VALUES (?, ?, ?, NOW())");
+        $sentSQL->execute([$tarea_id, $usuarioLogueado['id'], $texto]);
+        http_response_code(201);
+        echo json_encode([
+            "mensaje" => "Comentario agregado",
+            "comentario" => [
+                "id" => (int)$conn->lastInsertId(),
+                "tarea_id" => (int)$tarea_id,
+                "usuario_id" => (int)$usuarioLogueado['id'],
+                "texto" => $texto,
+                "autor" => $usuarioLogueado['nombre'] ?? '',
+                "fecha_creacion" => date('Y-m-d H:i:s'),
+            ],
+        ]);
+        exit;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            "mensaje" => "Error agregando comentario",
             //"error" => $e->getMessage()
         ]);
         exit;

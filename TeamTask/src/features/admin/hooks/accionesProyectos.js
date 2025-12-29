@@ -1,0 +1,285 @@
+import {
+  normalizarEstadoTexto,
+  normalizarPrioridadTexto,
+} from "../utils/text.js";
+import * as api from "../../../services/api.jsx";
+
+//Obtengo ids de usuario desde varias formas posibles en la tarea
+const obtenerUsuarioIds = (t) => {
+  if (!t) return [];
+  if (Array.isArray(t.usuarioIds)) return t.usuarioIds;
+  if (t.usuario_ids) {
+    return String(t.usuario_ids)
+      .split(",")
+      .map((n) => Number(n))
+      .filter((n) => !Number.isNaN(n));
+  }
+  return [];
+};
+
+//Paso el estado a la clave esperada por la API
+const estadoParaApi = (estado) => {
+  const e = (estado || "").toLowerCase();
+  if (e.includes("progreso")) return "en_progreso";
+  if (e.includes("complet")) return "completada";
+  return "pendiente";
+};
+
+export function crearAccionesProyectos(ctx) {
+  //Creo un proyecto nuevo y reseteo el formulario
+  const handleCrearProyecto = async (e) => {
+    e.preventDefault();
+    ctx.setMensajeProyecto("");
+    ctx.setErrorProyecto("");
+
+    if (!ctx.nombreProyecto.trim()) {
+      ctx.setErrorProyecto("El nombre del proyecto es obligatorio");
+      return;
+    }
+
+    try {
+      const creado = await api.crearProyecto(
+        ctx.nombreProyecto,
+        ctx.descripcionProyecto
+      );
+      const nuevo =
+        creado && creado.id
+          ? {
+              id: creado.id,
+              nombre: creado.nombre || ctx.nombreProyecto,
+              descripcion: creado.descripcion || ctx.descripcionProyecto,
+              tareasAbiertas: 0,
+            }
+          : {
+              id: Date.now(),
+              nombre: ctx.nombreProyecto,
+              descripcion: ctx.descripcionProyecto,
+              tareasAbiertas: 0,
+            };
+      ctx.setProyectos((prev) => [nuevo, ...prev]);
+      ctx.setMensajeProyecto("Proyecto creado correctamente");
+      ctx.setNombreProyecto("");
+      ctx.setDescripcionProyecto("");
+    } catch (err) {
+      ctx.setErrorProyecto(err.message);
+    }
+  };
+
+  //Elimino un proyecto y limpio tareas/asignaciones asociadas
+  const handleEliminarProyecto = async (proyectoId) => {
+    const confirmado = window.confirm("Eliminar este proyecto?");
+    if (!confirmado) return;
+    const proyecto = ctx.proyectos.find((p) => p.id === proyectoId);
+    if (proyecto) {
+      try {
+        await api.eliminarProyecto(proyecto.nombre);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    ctx.setProyectos((prev) => prev.filter((p) => p.id !== proyectoId));
+    ctx.setTareas((prev) => {
+      const copia = { ...prev };
+      delete copia[proyectoId];
+      return copia;
+    });
+    ctx.setAsignaciones((prev) => {
+      const copia = { ...prev };
+      delete copia[proyectoId];
+      return copia;
+    });
+    if (ctx.proyectoActivo?.id === proyectoId) {
+      ctx.setProyectoActivo(null);
+    }
+  };
+
+  //Renombro un proyecto y actualizo la vista activa
+  const handleRenombrarProyecto = (proyectoId, nombreActual) => {
+    const nuevoNombre = window.prompt(
+      "Nuevo nombre del proyecto?",
+      nombreActual || ""
+    );
+    if (!nuevoNombre || !nuevoNombre.trim()) return;
+    const descripcionActual = ctx.proyectos.find((p) => p.id === proyectoId)
+      ?.descripcion;
+    api
+      .renombrarProyecto(nombreActual, nuevoNombre.trim(), descripcionActual)
+      .catch((err) => console.error(err));
+    ctx.setProyectos((prev) =>
+      prev.map((p) =>
+        p.id === proyectoId ? { ...p, nombre: nuevoNombre.trim() } : p
+      )
+    );
+    if (ctx.proyectoActivo?.id === proyectoId) {
+      ctx.setProyectoActivo((prev) => ({ ...prev, nombre: nuevoNombre.trim() }));
+    }
+  };
+
+  //Cargo tareas y usuarios asignados de un proyecto seleccionado
+  const cargarProyectoDetalle = async (proyecto) => {
+    if (!proyecto) return;
+    ctx.setProyectoActivo(proyecto);
+    ctx.setTabProyecto("tareas");
+    try {
+      ctx.setCargando(true);
+      const [tareasApi, usuariosProyecto] = await Promise.all([
+        api.getTareasPorProyecto(proyecto.id),
+        api.getUsuariosPorProyecto(proyecto.id),
+      ]);
+
+      ctx.setTareas((prev) => ({
+        ...prev,
+        [proyecto.id]: (tareasApi || []).map((t) => ({
+          ...t,
+          prioridad: normalizarPrioridadTexto(t.prioridad),
+          estado: normalizarEstadoTexto(t.estado),
+          usuarioIds: obtenerUsuarioIds(t),
+        })),
+      }));
+      ctx.setAsignaciones((prev) => ({
+        ...prev,
+        [proyecto.id]: (usuariosProyecto || []).map((u) => u.id),
+      }));
+    } catch (err) {
+      console.error("Error cargando proyecto", err);
+    } finally {
+      ctx.setCargando(false);
+    }
+  };
+
+  //Actualizo una tarea y sincronizo asignaciones de usuarios
+  const handleActualizarTarea = async (proyectoId, tareaId, cambios) => {
+    const listaPrev = ctx.tareas[proyectoId] || [];
+    const tareaPrev = listaPrev.find((t) => t.id === tareaId);
+    const prevIds = obtenerUsuarioIds(tareaPrev);
+    const nuevosIds = Array.isArray(cambios.usuarioIds) ? cambios.usuarioIds : [];
+
+    try {
+      await api.actualizarTareaApi({
+        id: tareaId,
+        titulo: cambios.titulo,
+        descripcion: cambios.descripcion,
+        estado: estadoParaApi(cambios.estado),
+        prioridad: (cambios.prioridad || "").toLowerCase(),
+      });
+      //Agrego asignaciones nuevas
+      for (const uid of nuevosIds) {
+        if (!prevIds.includes(uid) && uid !== null && uid !== undefined) {
+          try {
+            await api.asignarUsuarioTarea(tareaId, uid);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+      //Quito asignaciones que ya no aplican
+      for (const uid of prevIds) {
+        if (!nuevosIds.includes(uid) && uid !== null && uid !== undefined) {
+          try {
+            await api.desasignarUsuarioTarea(tareaId, uid);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    ctx.setTareas((prev) => {
+      const lista = prev[proyectoId] || [];
+      const actualizada = lista.map((t) => {
+        if (t.id !== tareaId) return t;
+        const normalizada = {
+          ...t,
+          ...cambios,
+          prioridad: normalizarPrioridadTexto(cambios.prioridad),
+          estado: normalizarEstadoTexto(cambios.estado),
+        };
+        if (normalizada.usuarioIds) {
+          normalizada.usuarioIds = normalizada.usuarioIds.filter(
+            (id) => id !== null && id !== undefined
+          );
+        }
+        return normalizada;
+      });
+      return { ...prev, [proyectoId]: actualizada };
+    });
+  };
+
+  //Elimino una tarea y la quito de la lista local
+  const handleEliminarTarea = async (proyectoId, tareaId) => {
+    const confirmado = window.confirm("Eliminar esta tarea?");
+    if (!confirmado) return;
+    try {
+      await api.eliminarTareaApi(tareaId);
+    } catch (err) {
+      console.error(err);
+    }
+    ctx.setTareas((prev) => {
+      const lista = prev[proyectoId] || [];
+      return { ...prev, [proyectoId]: lista.filter((t) => t.id !== tareaId) };
+    });
+  };
+
+  //Creo una tarea nueva, asigno usuarios validos y la agrego a la lista
+  const handleCrearTarea = async (tareaData) => {
+    if (!ctx.proyectoActivo || !tareaData.titulo?.trim()) return;
+
+    const asignadosProyecto = ctx.asignaciones[ctx.proyectoActivo.id] || [];
+    const usuariosValidos = Array.isArray(tareaData.usuarioIds)
+      ? tareaData.usuarioIds.filter((id) => asignadosProyecto.includes(id))
+      : [];
+
+    const nueva = {
+      titulo: tareaData.titulo.trim(),
+      descripcion: (tareaData.descripcion || "").trim(),
+      usuarioIds: usuariosValidos,
+      prioridad: normalizarPrioridadTexto(tareaData.prioridad),
+      estado: normalizarEstadoTexto(tareaData.estado),
+    };
+
+    try {
+      const res = await api.crearTareaApi({
+        proyecto_id: ctx.proyectoActivo.id,
+        titulo: nueva.titulo,
+        descripcion: nueva.descripcion,
+        estado: estadoParaApi(nueva.estado),
+        prioridad: nueva.prioridad.toLowerCase(),
+      });
+      const tareaCreada = {
+        id: res?.tarea?.id || Date.now(),
+        ...nueva,
+      };
+      for (const uid of nueva.usuarioIds) {
+        try {
+          await api.asignarUsuarioTarea(tareaCreada.id, uid);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      ctx.setTareas((prev) => {
+        const lista = prev[ctx.proyectoActivo.id] || [];
+        return { ...prev, [ctx.proyectoActivo.id]: [tareaCreada, ...lista] };
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    ctx.setNuevaTarea({
+      titulo: "",
+      descripcion: "",
+      usuarioIds: [],
+      prioridad: "Media",
+      estado: "Pendiente",
+    });
+  };
+
+  return {
+    handleCrearProyecto,
+    handleEliminarProyecto,
+    handleRenombrarProyecto,
+    cargarProyectoDetalle,
+    handleActualizarTarea,
+    handleEliminarTarea,
+    handleCrearTarea,
+  };
+}
