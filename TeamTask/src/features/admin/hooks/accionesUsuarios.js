@@ -1,3 +1,4 @@
+//Llamadas al backend
 import * as api from "../../../services/api.jsx";
 
 export function crearAccionesUsuarios(ctx) {
@@ -11,7 +12,7 @@ export function crearAccionesUsuarios(ctx) {
       !ctx.nuevoUsuario.contrasena.trim()
     ) {
       ctx.setErrorUsuario(
-        "Completa nombre, correo y contrasena para crear el usuario"
+        "Completa nombre, correo y contraseña para crear el usuario"
       );
       return;
     }
@@ -66,6 +67,23 @@ export function crearAccionesUsuarios(ctx) {
     }
   };
 
+  //Reseteo la contraseña de un usuario sin tocar el estado visible
+  const handleResetUsuarioContrasena = async (correo, nuevaContrasena) => {
+    ctx.setErrorUsuario("");
+    if (!correo || !nuevaContrasena?.trim()) {
+      ctx.setErrorUsuario("Indica una contraseña valida");
+      return;
+    }
+    try {
+      await api.actualizarUsuarioApi(correo, {
+        correo,
+        contrasena: nuevaContrasena.trim(),
+      });
+    } catch (err) {
+      ctx.setErrorUsuario(err.message || "No se pudo resetear la contraseña");
+    }
+  };
+
   //Elimino un usuario y limpio la seleccion si corresponde
   const handleEliminarUsuario = async (id) => {
     const confirmado = window.confirm("Eliminar este usuario?");
@@ -99,7 +117,7 @@ export function crearAccionesUsuarios(ctx) {
     }
   };
 
-  //Remuevo la asignacion de un usuario en un proyecto
+  //Quito la asignacion de un usuario en un proyecto
   const handleDesasignarUsuario = async (proyectoId, usuarioId) => {
     try {
       await api.desasignarUsuarioProyecto(proyectoId, usuarioId);
@@ -113,8 +131,10 @@ export function crearAccionesUsuarios(ctx) {
   };
 
   return {
+    //Acciones disponibles para la vista
     handleNuevoUsuario,
     handleActualizarUsuario,
+    handleResetUsuarioContrasena,
     handleEliminarUsuario,
     handleAsignarUsuario,
     handleDesasignarUsuario,

@@ -6,6 +6,7 @@ export const capitalizar = (txt = "") =>
 export const normalizarEstadoTexto = (estado = "") => {
   const e = estado.toLowerCase();
   if (e === "en progreso") return "En progreso";
+  if (e === "en_progreso") return "En progreso";
   if (e === "en revision") return "En revision";
   if (e === "completada") return "Completada";
   if (e === "pendiente") return "Pendiente";

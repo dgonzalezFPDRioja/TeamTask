@@ -1,4 +1,9 @@
+//Herramientas para estado
+import { useState } from "react";
+//Piezas visuales
 import { Card, Form, FloatingLabel, ButtonGroup, Button } from "react-bootstrap";
+//Lista de roles
+import { ROL_OPTIONS } from "../../../services/roles.js";
 
 export default function DetalleUsuario(props) {
   //Mantengo un borrador editable del usuario seleccionado
@@ -7,6 +12,8 @@ export default function DetalleUsuario(props) {
   const usuarioSeleccionado = props.usuarioSeleccionado;
   const onEliminarUsuario = props.onEliminarUsuario;
   const onGuardar = props.onGuardar;
+  const onResetUsuarioContrasena = props.onResetUsuarioContrasena;
+  const [nuevaContrasena, setNuevaContrasena] = useState("");
 
   if (!usuarioSeleccionado) {
     //Si no hay usuario, muestro un placeholder
@@ -17,17 +24,28 @@ export default function DetalleUsuario(props) {
     );
   }
 
+  const handleResetContrasena = async () => {
+    //Cambio la contraseña con el texto nuevo
+    if (!usuarioSeleccionado || !onResetUsuarioContrasena) return;
+    const nueva = nuevaContrasena.trim();
+    if (!nueva) return;
+    await onResetUsuarioContrasena(usuarioSeleccionado.correo, nueva);
+    setNuevaContrasena("");
+  };
+
   return (
     <Card className="p-3 h-100">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
+          {/*Nombre e id*/}
           <div className="fw-bold">{draft?.nombre || ""}</div>
           <div className="text-muted small">ID: {usuarioSeleccionado.id}</div>
         </div>
       </div>
 
-      {/*//Edito nombre, correo y rol desde este formulario*/}
+      {/*Edito nombre, correo y rol desde este formulario*/}
       <Form>
+        {/*Nombre*/}
         <FloatingLabel label="Nombre" className="mb-3">
           <Form.Control
             value={draft?.nombre || ""}
@@ -38,6 +56,7 @@ export default function DetalleUsuario(props) {
           />
         </FloatingLabel>
 
+        {/*Correo*/}
         <FloatingLabel label="Correo" className="mb-3">
           <Form.Control
             type="email"
@@ -49,6 +68,7 @@ export default function DetalleUsuario(props) {
           />
         </FloatingLabel>
 
+        {/*Rol*/}
         <FloatingLabel label="Rol" className="mb-3">
           <Form.Select
             value={draft?.rol || "USER"}
@@ -56,11 +76,36 @@ export default function DetalleUsuario(props) {
               setDraft((prev) => ({ ...prev, rol: e.target.value }))
             }
           >
-            <option value="USER">Usuario</option>
-            <option value="ADMIN">Admin</option>
+            {ROL_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </Form.Select>
         </FloatingLabel>
 
+        {/*Nueva contraseña*/}
+        <FloatingLabel label="Nueva contraseña" className="mb-3">
+          <Form.Control
+            type="password"
+            value={nuevaContrasena}
+            onChange={(e) => setNuevaContrasena(e.target.value)}
+            placeholder="Nueva contraseña"
+          />
+        </FloatingLabel>
+
+        {/*Boton para resetear*/}
+        <div className="d-flex justify-content-end mb-3">
+          <Button
+            variant="outline-warning"
+            onClick={handleResetContrasena}
+            disabled={!nuevaContrasena.trim()}
+          >
+            Resetear contraseña
+          </Button>
+        </div>
+
+        {/*Acciones finales*/}
         <ButtonGroup className="d-flex justify-content-end gap-2">
           <Button
             variant="outline-danger"
@@ -72,12 +117,10 @@ export default function DetalleUsuario(props) {
             Guardar
           </Button>
         </ButtonGroup>
-
-        <p className="text-muted small mb-0 mt-2">
-          Acciones futuras: resetear contrasena, bloquear acceso,
-          ver actividad reciente.
-        </p>
       </Form>
     </Card>
   );
 }
+
+
+

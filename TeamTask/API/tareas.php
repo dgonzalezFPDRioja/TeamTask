@@ -50,6 +50,14 @@ if ($metodo === 'GET' && isset($_GET['proyecto_id'])) {
             GROUP BY t.id
             ORDER BY t.id DESC");
             $sentSQL->execute([$proyectoId]);
+        } elseif (strtoupper($rol) === 'MANAGER') {
+            $sentSQL = $conn->prepare("SELECT t.*, GROUP_CONCAT(ta.usuario_id) AS usuario_ids
+            FROM tareas t
+            LEFT JOIN tareas_asignadas ta ON t.id = ta.tarea_id
+            WHERE t.proyecto_id = ?
+            GROUP BY t.id
+            ORDER BY t.id DESC");
+            $sentSQL->execute([$proyectoId]);
         } else {
             $sentSQL = $conn->prepare("SELECT t.*, GROUP_CONCAT(ta.usuario_id) AS usuario_ids FROM tareas t
             INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id
@@ -282,16 +290,18 @@ if ($metodo === 'PUT') {
         $titulo = $input['titulo'] ?? $tareaActual['titulo'];
         $descripcion = $input['descripcion'] ?? $tareaActual['descripcion'];
         $estado = $input['estado'] ?? $tareaActual['estado'];
+        $fecha_limite = array_key_exists('fecha_limite', $input) ? $input['fecha_limite'] : $tareaActual['fecha_limite'];
 
         //Update de la tarea
-        $sentSQL = $conn->prepare("UPDATE tareas SET titulo = ?, descripcion = ?, estado = ? WHERE id = ?");
-        $sentSQL->execute([$titulo, $descripcion, $estado, $id]);
+        $sentSQL = $conn->prepare("UPDATE tareas SET titulo = ?, descripcion = ?, estado = ?, fecha_limite = ? WHERE id = ?");
+        $sentSQL->execute([$titulo, $descripcion, $estado, $fecha_limite, $id]);
 
         echo json_encode([
             "id" => $id,
             "titulo" => $titulo,
             "descripcion" => $descripcion,
-            "estado" => $estado
+            "estado" => $estado,
+            "fecha_limite" => $fecha_limite
         ]);
         exit;
     } catch (PDOException $e) {

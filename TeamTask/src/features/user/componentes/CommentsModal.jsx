@@ -1,5 +1,8 @@
+//Herramientas para estado y efectos
 import { useEffect, useState } from "react";
+//Componentes para el modal y el formulario
 import { Modal, Button, ListGroup, Form, Spinner, Alert } from "react-bootstrap";
+//Llamadas al backend para comentarios
 import { getComentariosTarea, crearComentarioTarea } from "../../../services/api.jsx";
 
 export default function CommentsModal(props) {
@@ -52,21 +55,27 @@ export default function CommentsModal(props) {
 
   return (
     <Modal show={show} onHide={onClose} centered>
+      {/*Cabecera del modal*/}
       <Modal.Header closeButton>
         <Modal.Title>Comentarios</Modal.Title>
       </Modal.Header>
       <Modal.Body className="d-flex flex-column gap-3">
+        {/*Aviso si hay error*/}
         {error && <Alert variant="danger">{error}</Alert>}
+        {/*Cargador mientras llegan los comentarios*/}
         {cargando && (
           <div className="d-flex justify-content-center">
             <Spinner animation="border" />
           </div>
         )}
+        {/*Mensaje si no hay comentarios*/}
         {comentarios.length === 0 && <div className="text-muted">Sin comentarios.</div>}
+        {/*Lista de comentarios*/}
         {comentarios.length > 0 && (
           <ListGroup>
             {comentarios.map((c, idx) => (
               <ListGroup.Item key={idx}>
+                {/*Autor y contenido*/}
                 <div className="fw-bold">{c.autor || c.author || "Anonimo"}</div>
                 <div className="text-muted small">{c.texto || c.contenido || c.comentario || c.text || ""}</div>
                 {c.fecha_creacion && (
@@ -77,6 +86,7 @@ export default function CommentsModal(props) {
           </ListGroup>
         )}
 
+        {/*Formulario para escribir un comentario*/}
         <Form>
           <Form.Group>
             <Form.Label>Escribe un comentario</Form.Label>
@@ -88,6 +98,7 @@ export default function CommentsModal(props) {
               placeholder="Deja tu comentario aqui"
             />
           </Form.Group>
+          {/*Boton para enviar*/}
           <div className="d-flex justify-content-end mt-2">
             <Button variant="primary" onClick={handleAdd} disabled={!texto.trim()}>
               Enviar
@@ -95,6 +106,7 @@ export default function CommentsModal(props) {
           </div>
         </Form>
       </Modal.Body>
+      {/*Pie con cerrar*/}
       <Modal.Footer>
         <Button variant="secondary" onClick={onClose}>
           Cerrar

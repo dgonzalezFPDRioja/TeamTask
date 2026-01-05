@@ -2,6 +2,7 @@
 //API para la autenticacion del usuario con el token
 
 function getUsuarioDeToken(PDO $conn){
+    //Funcion para validar el token y devolver el usuario
     //Consigo los headers de la peticion
     $headers = getallheaders();
 

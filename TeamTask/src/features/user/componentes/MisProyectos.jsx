@@ -1,3 +1,4 @@
+//Piezas visuales basicas
 import { Card, Button, Spinner } from "react-bootstrap";
 
 export default function MisProyectos(props) {
@@ -8,21 +9,26 @@ export default function MisProyectos(props) {
   const onSeleccionarProyecto = props.onSeleccionarProyecto;
 
   return (
-    <Card className="custom-card h-100">
+    <Card className="custom-card">
       <Card.Body>
+        {/*Titulo de la caja*/}
         <Card.Title className="mb-3">Mis proyectos</Card.Title>
 
         {cargandoProyectos ? (
+          //Muestro un cargador mientras llega la lista
           <div className="d-flex justify-content-center">
             <Spinner animation="border" />
           </div>
         ) : proyectos.length === 0 ? (
+          //Mensaje si no hay proyectos
           <p className="text-muted">No tienes proyectos asignados todavia.</p>
         ) : (
+          //Lista de proyectos disponibles
           <div className="d-flex flex-column gap-2">
             {proyectos.map((p) => (
               <Button
                 key={p.id}
+                //Pinto el boton segun el seleccionado
                 variant={
                   proyectoSeleccionado && proyectoSeleccionado.id === p.id
                     ? "primary"
@@ -31,6 +37,7 @@ export default function MisProyectos(props) {
                 className="text-start"
                 onClick={() => onSeleccionarProyecto(p)}
               >
+                {/*Nombre y descripcion*/}
                 <div className="fw-bold">{p.nombre}</div>
                 {p.descripcion && (
                   <div className="small text-muted">{p.descripcion}</div>

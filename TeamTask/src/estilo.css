@@ -1,28 +1,36 @@
-/*//Aplico un tema azul oscuro personalizado*/
+/*Tema general de la pagina*/
 body {
-  background-color: #0A192F !important;
+  background-color: #c5c8cc !important;
   color: #E6F1FF;
   font-family: 'Inter', sans-serif;
 }
 
-/* Estética de cards */
+/*Estilo de las tarjetas*/
 .custom-card {
-  background-color: #112240 !important;
+  background-color: #121823 !important;
   color: #E6F1FF !important;
   border: none !important;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-/* Textos más suaves */
+/*Textos mas suaves*/
 .text-light-muted {
   color: #8892B0 !important;
 }
 
-/* Botón principal azul moderno */
+.text-muted {
+  color: #A9B4D4 !important;
+}
+
+/*Fondo principal*/
+.bg-primary {
+  background-color: #121823 !important;
+}
+/*Boton principal azul*/
 .btn-primary {
-  background-color: #3A86FF !important;
-  border-color: #3A86FF !important;
+  background-color: #183769 !important;
+  border-color: #183769 !important;
   border-radius: 8px !important;
 }
 
@@ -30,26 +38,99 @@ body {
   background-color: #2f6ed4 !important;
 }
 
-/* Botón de peligro (logout) */
+.btn-outline-primary {
+  color: #c5dafc !important;
+  border-color: #183769 !important;
+}
+
+.btn-outline-primary:hover {
+  color: #E6F1FF !important;
+  background-color: #3f5a85 !important;
+  border-color: #3f5a85 !important;
+}
+
+/*Boton de peligro*/
 .btn-danger {
   background-color: #d9534f !important;
   border-color: #d9534f !important;
   border-radius: 8px !important;
 }
 
-/* Inputs minimalistas */
+/*Campos de texto*/
 .form-control {
-  background-color: #0A192F !important;
-  color: #E6F1FF !important;
-  border: 1px solid #3A86FF !important;
+  background-color: #ebebeb !important;
+  color: #000000 !important;
+  border: 1px solid #ffffff !important;
   border-radius: 8px !important;
 }
 
 .form-control:focus {
-  box-shadow: 0 0 0 2px rgba(58,134,255,0.5) !important;
+  box-shadow: #d1e3ff !important;
 }
 
 .card-title {
   font-size: 1.4rem;
   font-weight: 600;
+}
+
+/*Items de lista*/
+.list-group-item {
+  background-color: #1c2b47 !important;
+  color: #E6F1FF !important;
+  border-color: #1f2b4a !important;
+}
+
+.list-group-item:hover {
+  background-color: #1a2a4f !important;
+}
+
+.list-group-item.active {
+  background-color: #23355f !important;
+  border-color: #23355f !important;
+  color: #E6F1FF !important;
+}
+
+/*Logo en el banner*/
+.banner-logo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  border-radius: 0;
+  background-color: transparent;
+  padding: 0;
+}
+
+/*Imagen del login*/
+.login-hero-image {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+/*Etiquetas de tareas*/
+.task-badges {
+  align-items: center;
+}
+
+.task-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 26px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/*Texto de etiquetas en la tabla*/
+.task-badge-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 20px;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
 }

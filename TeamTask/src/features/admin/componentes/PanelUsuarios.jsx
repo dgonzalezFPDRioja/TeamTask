@@ -1,4 +1,6 @@
+//Herramientas para estado y efectos
 import { useEffect, useState } from "react";
+//Piezas visuales
 import {
   Card,
   Row,
@@ -6,6 +8,7 @@ import {
   ListGroup,
   Badge,
 } from "react-bootstrap";
+//Form y detalle del usuario
 import FormNuevoUsuario from "./FormNuevoUsuario.jsx";
 import DetalleUsuario from "./DetalleUsuario.jsx";
 
@@ -17,6 +20,7 @@ export default function PanelUsuarios(props) {
   const onSeleccionarUsuario = props.onSeleccionarUsuario;
   const onEliminarUsuario = props.onEliminarUsuario;
   const onActualizarUsuario = props.onActualizarUsuario;
+  const onResetUsuarioContrasena = props.onResetUsuarioContrasena;
   const nuevoUsuario = props.nuevoUsuario;
   const onNuevoUsuarioChange = props.onNuevoUsuarioChange;
   const onCrearUsuario = props.onCrearUsuario;
@@ -28,6 +32,7 @@ export default function PanelUsuarios(props) {
   }, [usuarioSeleccionado]);
 
   const handleGuardar = () => {
+    //Guardo los cambios del usuario actual
     if (!draft) return;
     onActualizarUsuario("nombre", draft.nombre);
     onActualizarUsuario("correo", draft.correo);
@@ -36,6 +41,7 @@ export default function PanelUsuarios(props) {
 
   return (
     <div className="d-flex flex-column gap-3">
+      {/*Formulario para crear usuario*/}
       <FormNuevoUsuario
         nuevoUsuario={nuevoUsuario}
         onNuevoUsuarioChange={onNuevoUsuarioChange}
@@ -47,6 +53,7 @@ export default function PanelUsuarios(props) {
         <h5 className="mb-3">Usuarios</h5>
           <Row className="g-3 align-items-stretch">
             <Col md={5}>
+              {/*Lista de usuarios*/}
               <ListGroup>
                 {usuarios.map((u) => (
                   <ListGroup.Item
@@ -60,13 +67,25 @@ export default function PanelUsuarios(props) {
                     <div className="fw-bold">{u.nombre}</div>
                     <div className="text-muted small">{u.correo}</div>
                   </div>
+                  {/*Rol en una etiqueta*/}
                   <Badge
-                    bg={(u.rol || "").toUpperCase() === "ADMIN" ? "primary" : "secondary"}
+                    bg={
+                      (u.rol || "").toUpperCase() === "ADMIN"
+                        ? "primary"
+                        : (u.rol || "").toUpperCase() === "MANAGER"
+                        ? "warning"
+                        : "secondary"
+                    }
                   >
-                    {(u.rol || "").toUpperCase() === "ADMIN" ? "Admin" : "Usuario"}
+                    {(u.rol || "").toUpperCase() === "ADMIN"
+                      ? "Admin"
+                      : (u.rol || "").toUpperCase() === "MANAGER"
+                      ? "Manager"
+                      : "Usuario"}
                   </Badge>
                 </ListGroup.Item>
               ))}
+              {/*Mensaje si no hay usuarios*/}
               {usuarios.length === 0 && (
                 <ListGroup.Item className="text-muted">
                   No hay usuarios todavia.
@@ -76,12 +95,14 @@ export default function PanelUsuarios(props) {
           </Col>
 
           <Col md={7}>
+            {/*Detalle del usuario seleccionado*/}
             <DetalleUsuario
               draft={draft}
               setDraft={setDraft}
               usuarioSeleccionado={usuarioSeleccionado}
               onEliminarUsuario={onEliminarUsuario}
               onGuardar={handleGuardar}
+              onResetUsuarioContrasena={onResetUsuarioContrasena}
             />
           </Col>
         </Row>

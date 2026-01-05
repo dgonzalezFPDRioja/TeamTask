@@ -1,3 +1,4 @@
+//Piezas visuales
 import { ListGroup, Badge, ButtonGroup, Button } from "react-bootstrap";
 
 export default function TareasProyecto(props) {
@@ -12,21 +13,25 @@ export default function TareasProyecto(props) {
   return (
     <ListGroup>
       {tareasProyecto.map((t) => {
+        //Usuarios asignados a esta tarea
         const asignadosProyecto = asignaciones[proyectoActivo.id] || [];
         const idsTarea = (t.usuarioIds || []).filter((id) =>
           asignadosProyecto.includes(id)
         );
+        //Acorto la descripcion para que no rompa el diseño
         const descripcionCorta = t.descripcion
           ? t.descripcion.length > 40
             ? `${t.descripcion.slice(0, 37)}...`
             : t.descripcion
           : "";
+        //Color segun prioridad
         const prioridadVariant =
           (t.prioridad || "").toLowerCase() === "alta"
             ? "danger"
             : (t.prioridad || "").toLowerCase() === "media"
             ? "warning"
             : "primary";
+        //Color segun estado
         const estadoVariant =
           (t.estado || "").toLowerCase() === "pendiente"
             ? "danger"
@@ -35,6 +40,7 @@ export default function TareasProyecto(props) {
             : (t.estado || "").toLowerCase() === "completada"
             ? "success"
             : "secondary";
+        //Evito mostrar "en revision" si no toca
         const mostrarEstado = (t.estado || "").toLowerCase() !== "en revision";
         return (
           <ListGroup.Item
@@ -43,6 +49,7 @@ export default function TareasProyecto(props) {
           >
             <div className="d-flex flex-column gap-1 flex-grow-1 min-width-0">
               <div className="d-flex align-items-center gap-2 flex-wrap">
+                {/*Titulo y descripcion corta*/}
                 <div className="fw-bold text-truncate">{t.titulo}</div>
                 {t.descripcion && (
                   <div className="text-muted small text-truncate">
@@ -55,9 +62,11 @@ export default function TareasProyecto(props) {
               className="d-flex align-items-center gap-2"
               style={{ minWidth: "150px" }}
             >
+              {/*Etiquetas de prioridad y estado*/}
               <Badge bg={prioridadVariant}>{t.prioridad}</Badge>
               {mostrarEstado && <Badge bg={estadoVariant}>{t.estado}</Badge>}
             </div>
+            {/*Botones de accion*/}
             <ButtonGroup size="sm">
               <Button
                 variant="outline-primary"

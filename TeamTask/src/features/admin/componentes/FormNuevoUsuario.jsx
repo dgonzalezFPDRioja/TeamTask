@@ -1,4 +1,7 @@
+//Piezas visuales
 import { Card, Alert, Form, Row, Col, Button, FloatingLabel } from "react-bootstrap";
+//Lista de roles disponibles
+import { ROL_OPTIONS } from "../../../services/roles.js";
 
 export default function FormNuevoUsuario(props) {
   //Creo usuarios nuevos con validaciones minimas
@@ -10,14 +13,17 @@ export default function FormNuevoUsuario(props) {
   return (
     <Card className="p-4 shadow-sm">
       <h5 className="mb-3">Crear usuario</h5>
+      {/*Mensaje de error*/}
       {errorUsuario && (
         <Alert variant="danger" className="mb-3">
           {errorUsuario}
         </Alert>
       )}
+      {/*Formulario para crear usuario*/}
       <Form onSubmit={onCrearUsuario}>
         <Row className="g-3">
           <Col md={3}>
+            {/*Nombre*/}
             <FloatingLabel label="Nombre">
               <Form.Control
                 value={nuevoUsuario.nombre}
@@ -33,6 +39,7 @@ export default function FormNuevoUsuario(props) {
             </FloatingLabel>
           </Col>
           <Col md={3}>
+            {/*Correo*/}
             <FloatingLabel label="Correo">
               <Form.Control
                 type="email"
@@ -49,7 +56,8 @@ export default function FormNuevoUsuario(props) {
             </FloatingLabel>
           </Col>
           <Col md={3}>
-            <FloatingLabel label="Contrasena">
+            {/*Contraseña*/}
+            <FloatingLabel label="Contraseña">
               <Form.Control
                 type="password"
                 value={nuevoUsuario.contrasena}
@@ -65,6 +73,7 @@ export default function FormNuevoUsuario(props) {
             </FloatingLabel>
           </Col>
           <Col md={3}>
+            {/*Rol*/}
             <FloatingLabel label="Rol">
               <Form.Select
                 value={nuevoUsuario.rol}
@@ -75,12 +84,16 @@ export default function FormNuevoUsuario(props) {
                   }))
                 }
               >
-                <option value="USER">Usuario</option>
-                <option value="ADMIN">Admin</option>
+                {ROL_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </Form.Select>
             </FloatingLabel>
           </Col>
         </Row>
+        {/*Boton para crear*/}
         <div className="mt-3 d-flex justify-content-end">
           <Button type="submit">Crear</Button>
         </div>
@@ -88,3 +101,5 @@ export default function FormNuevoUsuario(props) {
     </Card>
   );
 }
+
+

@@ -1,4 +1,6 @@
+//Herramientas para estado y efectos
 import { useEffect, useState } from "react";
+//Piezas del modal
 import { Modal, Form, Button, Row, Col } from "react-bootstrap";
 
 export default function ModalTarea(props) {
@@ -16,9 +18,11 @@ export default function ModalTarea(props) {
     usuarioIds: [],
     prioridad: "Media",
     estado: "Pendiente",
+    fecha_limite: "",
   };
   const [form, setForm] = useState(vacio);
   const [usuarioAAgregar, setUsuarioAAgregar] = useState("");
+  const hoy = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     //Sincronizo el formulario con la tarea inicial al abrir
@@ -31,7 +35,11 @@ export default function ModalTarea(props) {
   }, [tareaInicial, show]);
 
   const manejarEnvio = (e) => {
+    //Envio el formulario y valido la fecha
     e.preventDefault();
+    if (form.fecha_limite && form.fecha_limite < hoy) {
+      return;
+    }
     const usuarioIds = (form.usuarioIds || []).filter((id) =>
       usuariosAsignados.includes(id)
     );
@@ -41,10 +49,12 @@ export default function ModalTarea(props) {
   return (
     <Modal show={show} onHide={onClose} centered>
       <Form onSubmit={manejarEnvio}>
+        {/*Cabecera*/}
         <Modal.Header closeButton>
           <Modal.Title>{titulo}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="d-flex flex-column gap-3">
+          {/*Campo de titulo*/}
           <Form.Group>
             <Form.Label>Titulo</Form.Label>
             <Form.Control
@@ -55,6 +65,7 @@ export default function ModalTarea(props) {
               required
             />
           </Form.Group>
+          {/*Campo de descripcion*/}
           <Form.Group>
             <Form.Label>Descripcion</Form.Label>
             <Form.Control
@@ -66,6 +77,7 @@ export default function ModalTarea(props) {
               }
             />
           </Form.Group>
+          {/*Asignaciones de usuarios*/}
           <Form.Group>
             <Form.Label>Usuarios asignados</Form.Label>
             <div className="d-flex flex-column gap-2">
@@ -85,6 +97,7 @@ export default function ModalTarea(props) {
                       className="d-flex justify-content-between align-items-center border rounded px-2 py-1"
                     >
                       <div className="small fw-semibold">{u.nombre}</div>
+                      {/*Boton para quitar usuario*/}
                       <Button
                         size="sm"
                         variant="outline-danger"
@@ -105,6 +118,7 @@ export default function ModalTarea(props) {
                 })}
 
               <div className="d-flex gap-2 align-items-center">
+                {/*Selector para agregar usuario*/}
                 <Form.Select
                   value={usuarioAAgregar}
                   onChange={(e) => setUsuarioAAgregar(e.target.value)}
@@ -126,6 +140,7 @@ export default function ModalTarea(props) {
                       );
                     })}
                 </Form.Select>
+                {/*Boton para agregar*/}
                 <Button
                   type="button"
                   variant="outline-primary"
@@ -149,6 +164,7 @@ export default function ModalTarea(props) {
             <Col>
               <Form.Group>
                 <Form.Label>Prioridad</Form.Label>
+                {/*Selector de prioridad*/}
                 <Form.Select
                   value={form.prioridad}
                   onChange={(e) =>
@@ -164,6 +180,7 @@ export default function ModalTarea(props) {
             <Col>
               <Form.Group>
                 <Form.Label>Estado</Form.Label>
+                {/*Selector de estado*/}
                 <Form.Select
                   value={form.estado}
                   onChange={(e) =>
@@ -176,9 +193,24 @@ export default function ModalTarea(props) {
                 </Form.Select>
               </Form.Group>
             </Col>
+            <Col>
+              <Form.Group>
+                <Form.Label>Fecha limite</Form.Label>
+                {/*Selector de fecha*/}
+                <Form.Control
+                  type="date"
+                  value={form.fecha_limite || ""}
+                  min={hoy}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, fecha_limite: e.target.value }))
+                  }
+                />
+              </Form.Group>
+            </Col>
           </Row>
         </Modal.Body>
         <Modal.Footer>
+          {/*Botones finales*/}
           <Button variant="secondary" onClick={onClose}>
             Cancelar
           </Button>

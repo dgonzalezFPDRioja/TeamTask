@@ -1,4 +1,6 @@
+//Herramientas basicas para manejar estado y efectos
 import { useEffect, useState } from "react";
+//Componentes visuales simples
 import { Button, Alert } from "react-bootstrap";
 import {
   getMisProyectos,
@@ -6,16 +8,20 @@ import {
   actualizarTareaApi,
   getMisTareas,
 } from "../../../services/api.jsx";
+//Partes de la pantalla de usuario
 import MisProyectos from "../componentes/MisProyectos.jsx";
 import TareasProyectoTabla from "../componentes/TareasProyectoTabla.jsx";
 import StatsTareas from "../componentes/StatsTareas.jsx";
 import CommentsModal from "../componentes/CommentsModal.jsx";
+//Logo de la app
+import teamtaskLogo from "../../../assets/appnofondo.png";
 
 function Home() {
   //Verifico si hay usuario en sesion y redirijo segun rol
   const [usuario, setUsuario] = useState(null);
 
   useEffect(() => {
+    //Leo la sesion guardada y mando al lugar correcto
     try {
       const raw = sessionStorage.getItem("usuario");
       const parsed = raw ? JSON.parse(raw) : null;
@@ -43,6 +49,7 @@ function Home() {
   };
 
   if (!usuario) {
+    //Evito pintar la pantalla mientras no hay usuario
     return null;
   }
 
@@ -68,6 +75,7 @@ function HomeUsuario({ usuario, onLogout }) {
   const [verComentarios, setVerComentarios] = useState(false);
 
   useEffect(() => {
+    //Cargo la lista de proyectos del usuario
     async function cargar() {
       try {
         setError("");
@@ -122,6 +130,7 @@ function HomeUsuario({ usuario, onLogout }) {
   };
 
   useEffect(() => {
+    //Armo los numeritos de la parte de resumen
     const cargarStats = async () => {
       try {
         const data = await getMisTareas();
@@ -153,6 +162,7 @@ function HomeUsuario({ usuario, onLogout }) {
   }, [usuario.id]);
 
   const fondo = {
+    //Fondo suave para la pagina
     background:
       "linear-gradient(135deg, rgba(13,110,253,0.08), rgba(32,201,151,0.08))",
     minHeight: "100vh",
@@ -161,11 +171,15 @@ function HomeUsuario({ usuario, onLogout }) {
   return (
     <div style={fondo} className="py-3">
       <div className="container">
+        {/*Cabecera con logo y saludo*/}
         <div className="bg-primary text-white py-3 px-4 rounded-3 mb-3 d-flex justify-content-between align-items-center">
-          <div>
-            <div className="fw-bold fs-4">TeamTask</div>
-            <div className="small opacity-75">
-              Bienvenido, {usuario.nombre}
+          <div className="d-flex align-items-center gap-3">
+            <img src={teamtaskLogo} alt="TeamTask" className="banner-logo" />
+            <div>
+              <div className="fw-bold fs-4">TeamTask</div>
+              <div className="small opacity-75">
+                Bienvenido, {usuario.nombre}
+              </div>
             </div>
           </div>
           <Button variant="light" size="sm" onClick={onLogout}>
@@ -173,11 +187,14 @@ function HomeUsuario({ usuario, onLogout }) {
           </Button>
         </div>
 
+        {/*Error general si algo no sale bien*/}
         {error && <Alert variant="danger">{error}</Alert>}
+        {/*Resumen rapido de tareas*/}
         <StatsTareas stats={stats} />
 
         <div className="row g-3">
           <div className="col-12 col-md-5">
+            {/*Lista de proyectos del usuario*/}
             <MisProyectos
               proyectos={proyectos}
               cargandoProyectos={cargandoProyectos}
@@ -187,6 +204,7 @@ function HomeUsuario({ usuario, onLogout }) {
           </div>
 
           <div className="col-12 col-md-7">
+            {/*Tabla de tareas del proyecto elegido*/}
             <TareasProyectoTabla
               proyectoSeleccionado={proyectoSeleccionado}
               tareas={tareas}
@@ -200,6 +218,7 @@ function HomeUsuario({ usuario, onLogout }) {
             />
           </div>
         </div>
+        {/*Modal para comentarios*/}
         <CommentsModal
           show={verComentarios}
           tarea={tareaSeleccionada}

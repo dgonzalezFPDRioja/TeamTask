@@ -1,7 +1,9 @@
+//Textos bonitos para estado y prioridad
 import {
   normalizarEstadoTexto,
   normalizarPrioridadTexto,
 } from "../utils/text.js";
+//Llamadas al backend
 import * as api from "../../../services/api.jsx";
 
 //Obtengo ids de usuario desde varias formas posibles en la tarea
@@ -115,6 +117,29 @@ export function crearAccionesProyectos(ctx) {
     }
   };
 
+  //Cambio la descripcion del proyecto
+  const handleCambiarDescripcion = (proyectoId, nombreActual) => {
+    const nuevaDescripcion = window.prompt(
+      "Nueva descripcion del proyecto?",
+      ""
+    );
+    if (nuevaDescripcion === null) return;
+    api
+      .renombrarProyecto(nombreActual, nombreActual, nuevaDescripcion.trim())
+      .catch((err) => console.error(err));
+    ctx.setProyectos((prev) =>
+      prev.map((p) =>
+        p.id === proyectoId ? { ...p, descripcion: nuevaDescripcion.trim() } : p
+      )
+    );
+    if (ctx.proyectoActivo?.id === proyectoId) {
+      ctx.setProyectoActivo((prev) => ({
+        ...prev,
+        descripcion: nuevaDescripcion.trim(),
+      }));
+    }
+  };
+
   //Cargo tareas y usuarios asignados de un proyecto seleccionado
   const cargarProyectoDetalle = async (proyecto) => {
     if (!proyecto) return;
@@ -161,6 +186,7 @@ export function crearAccionesProyectos(ctx) {
         descripcion: cambios.descripcion,
         estado: estadoParaApi(cambios.estado),
         prioridad: (cambios.prioridad || "").toLowerCase(),
+        fecha_limite: cambios.fecha_limite || null,
       });
       //Agrego asignaciones nuevas
       for (const uid of nuevosIds) {
@@ -194,6 +220,7 @@ export function crearAccionesProyectos(ctx) {
           ...cambios,
           prioridad: normalizarPrioridadTexto(cambios.prioridad),
           estado: normalizarEstadoTexto(cambios.estado),
+          fecha_limite: cambios.fecha_limite ?? t.fecha_limite,
         };
         if (normalizada.usuarioIds) {
           normalizada.usuarioIds = normalizada.usuarioIds.filter(
@@ -245,11 +272,14 @@ export function crearAccionesProyectos(ctx) {
         descripcion: nueva.descripcion,
         estado: estadoParaApi(nueva.estado),
         prioridad: nueva.prioridad.toLowerCase(),
+        fecha_limite: tareaData.fecha_limite || null,
       });
       const tareaCreada = {
         id: res?.tarea?.id || Date.now(),
         ...nueva,
+        fecha_limite: tareaData.fecha_limite || null,
       };
+      //Asigno usuarios a la tarea creada
       for (const uid of nueva.usuarioIds) {
         try {
           await api.asignarUsuarioTarea(tareaCreada.id, uid);
@@ -274,9 +304,11 @@ export function crearAccionesProyectos(ctx) {
   };
 
   return {
+    //Acciones disponibles para la vista
     handleCrearProyecto,
     handleEliminarProyecto,
     handleRenombrarProyecto,
+    handleCambiarDescripcion,
     cargarProyectoDetalle,
     handleActualizarTarea,
     handleEliminarTarea,

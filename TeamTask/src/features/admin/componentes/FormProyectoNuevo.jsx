@@ -1,3 +1,4 @@
+//Piezas visuales
 import { Card, Alert, Form, Row, Col, FloatingLabel, Button } from "react-bootstrap";
 
 export default function FormProyectoNuevo(props) {
@@ -14,19 +15,23 @@ export default function FormProyectoNuevo(props) {
   return (
     <Card className="p-4 shadow-sm">
       <h5 className="mb-3">Crear nuevo proyecto</h5>
+      {/*Mensaje de exito*/}
       {mensaje && (
         <Alert variant="success" onClose={onClearAlerts} dismissible>
           {mensaje}
         </Alert>
       )}
+      {/*Mensaje de error*/}
       {error && (
         <Alert variant="danger" onClose={onClearAlerts} dismissible>
           {error}
         </Alert>
       )}
+      {/*Formulario principal*/}
       <Form onSubmit={onCrearProyecto}>
         <Row className="g-3">
           <Col md={6}>
+            {/*Nombre del proyecto*/}
             <FloatingLabel label="Nombre">
               <Form.Control
                 value={nombreProyecto}
@@ -37,7 +42,8 @@ export default function FormProyectoNuevo(props) {
             </FloatingLabel>
           </Col>
           <Col md={6}>
-            <FloatingLabel label="Descripcion">
+            {/*Descripcion opcional*/}
+            <FloatingLabel label="Descripción">
               <Form.Control
                 value={descripcionProyecto}
                 onChange={(e) => onDescripcionProyecto(e.target.value)}
@@ -46,6 +52,7 @@ export default function FormProyectoNuevo(props) {
             </FloatingLabel>
           </Col>
         </Row>
+        {/*Boton para crear*/}
         <div className="mt-3 d-flex justify-content-end">
           <Button type="submit">Crear</Button>
         </div>

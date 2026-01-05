@@ -1,9 +1,15 @@
+//Herramientas para estado y efectos
 import { useEffect, useState } from "react";
+//Llamadas al backend
 import * as api from "../../../services/api.jsx";
+//Ayuda para rol admin
+import { esAdmin } from "../../../services/roles.js";
+//Textos bonitos para tareas
 import {
   normalizarEstadoTexto,
   normalizarPrioridadTexto,
 } from "../utils/text.js";
+//Acciones separadas por area
 import { crearAccionesProyectos } from "./accionesProyectos.js";
 import { crearAccionesUsuarios } from "./accionesUsuarios.js";
 
@@ -23,6 +29,7 @@ const nuevoUsuarioInicial = () => ({
   rol: "USER",
 });
 
+//Ajusto los datos de una tarea al formato de la vista
 const normalizarTarea = (tarea) => ({
   ...tarea,
   prioridad: normalizarPrioridadTexto(tarea.prioridad),
@@ -70,23 +77,32 @@ export function useAdminPanel() {
   };
 
   useEffect(() => {
-    const usuarioGuardado = sessionStorage.getItem("usuario");
-    if (!usuarioGuardado) {
-      redirectToLogin();
-      return;
-    }
-
-    try {
-      const usuario = JSON.parse(usuarioGuardado);
-      if (!usuario || (usuario.rol || "").toUpperCase() !== "ADMIN") {
+    //Valido sesion y rol
+    let activo = true;
+    const cargarUsuario = async () => {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
         redirectToLogin();
         return;
       }
-      setAdmin(usuario);
-      setCargando(false);
-    } catch {
-      redirectToLogin();
-    }
+      try {
+        const usuario = await api.getUsuarioActual();
+        if (!activo) return;
+        if (!usuario || !esAdmin(usuario.rol)) {
+          redirectToLogin();
+          return;
+        }
+        sessionStorage.setItem("usuario", JSON.stringify(usuario));
+        setAdmin(usuario);
+        setCargando(false);
+      } catch {
+        redirectToLogin();
+      }
+    };
+    cargarUsuario();
+    return () => {
+      activo = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -96,7 +112,7 @@ export function useAdminPanel() {
       try {
         setCargando(true);
         const [proys, usrs] = await Promise.all([
-          (admin.rol || "").toUpperCase() === "ADMIN"
+          esAdmin(admin.rol)
             ? api.getProyectos()
             : api.getMisProyectos(),
           api.getUsuarios(),
@@ -142,6 +158,7 @@ export function useAdminPanel() {
     cargarTareasIniciales();
   }, [proyectos]);
 
+  //Acciones para proyectos
   const accionesProyectos = crearAccionesProyectos({
     nombreProyecto,
     descripcionProyecto,
@@ -186,6 +203,7 @@ export function useAdminPanel() {
     }
   }, [proyectoActivo]);
 
+  //Cierro sesion del admin
   const handleLogout = () => {
     sessionStorage.clear();
     window.location.href = "/login";
@@ -194,12 +212,15 @@ export function useAdminPanel() {
   const handleCrearProyecto = accionesProyectos.handleCrearProyecto;
   const handleEliminarProyecto = accionesProyectos.handleEliminarProyecto;
   const handleRenombrarProyecto = accionesProyectos.handleRenombrarProyecto;
+  const handleCambiarDescripcion = accionesProyectos.handleCambiarDescripcion;
   const handleActualizarTarea = accionesProyectos.handleActualizarTarea;
   const handleEliminarTarea = accionesProyectos.handleEliminarTarea;
   const handleCrearTarea = accionesProyectos.handleCrearTarea;
 
   const handleNuevoUsuario = accionesUsuarios.handleNuevoUsuario;
   const handleActualizarUsuario = accionesUsuarios.handleActualizarUsuario;
+  const handleResetUsuarioContrasena =
+    accionesUsuarios.handleResetUsuarioContrasena;
   const handleEliminarUsuario = accionesUsuarios.handleEliminarUsuario;
   const handleAsignarUsuario = accionesUsuarios.handleAsignarUsuario;
   const handleDesasignarUsuario = accionesUsuarios.handleDesasignarUsuario;
@@ -226,6 +247,7 @@ export function useAdminPanel() {
   };
 
   return {
+    //Datos para la vista
     admin,
     cargando,
     seccion,
@@ -257,15 +279,18 @@ export function useAdminPanel() {
     setNuevoUsuario,
     errorUsuario,
     stats,
+    //Acciones que usa la pantalla
     handleLogout,
     handleCrearProyecto,
     handleEliminarProyecto,
     handleRenombrarProyecto,
+    handleCambiarDescripcion,
     handleActualizarTarea,
     handleEliminarTarea,
     handleCrearTarea,
     handleNuevoUsuario,
     handleActualizarUsuario,
+    handleResetUsuarioContrasena,
     handleEliminarUsuario,
     handleAsignarUsuario,
     handleDesasignarUsuario,

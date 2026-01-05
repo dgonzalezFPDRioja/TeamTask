@@ -1,3 +1,4 @@
+//Componentes sencillos para el diseño
 import { Card, Row, Col } from "react-bootstrap";
 
 export default function StatsTareas(props) {
@@ -7,18 +8,21 @@ export default function StatsTareas(props) {
     <Row className="g-3 mb-3">
       <Col md={4}>
         <Card className="p-3 shadow-sm">
+          {/*Cantidad de tareas pendientes*/}
           <div className="text-muted small">Pendientes</div>
           <div className="fw-bold fs-4">{stats.pendientes}</div>
         </Card>
       </Col>
       <Col md={4}>
         <Card className="p-3 shadow-sm">
+          {/*Cantidad de tareas en progreso*/}
           <div className="text-muted small">En progreso</div>
           <div className="fw-bold fs-4">{stats.enProgreso}</div>
         </Card>
       </Col>
       <Col md={4}>
         <Card className="p-3 shadow-sm">
+          {/*Cantidad de tareas completadas en la ultima semana*/}
           <div className="text-muted small">Completadas (ultima semana)</div>
           <div className="fw-bold fs-4">{stats.completadasSemana}</div>
         </Card>

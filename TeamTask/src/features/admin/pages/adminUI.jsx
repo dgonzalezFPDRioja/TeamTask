@@ -1,22 +1,24 @@
+//Piezas visuales
 import { Card, Button, Alert, ListGroup, Row, Col } from "react-bootstrap";
+//Paneles de la vista admin
 import PanelEstadisticas from "../componentes/PanelEstadisticas.jsx";
 import PanelUsuarios from "../componentes/PanelUsuarios.jsx";
 import PanelProyectos from "../componentes/PanelProyectos.jsx";
+//Logica del panel admin
 import useAdminPanel from "../hooks/useAdminPanel.js";
+//Logo
+import teamtaskLogo from "../../../assets/appnofondo.png";
 
 //Defino la navegacion principal del panel
 const MENU = [
   { key: "estadisticas", label: "Inicio" },
   { key: "proyectos", label: "Administrar proyectos" },
   { key: "usuarios", label: "Administrar usuarios" },
-  { key: "ajustes", label: "Ajustes rapidos" },
 ];
 
 export default function AdminUI() {
   //Configuro el fondo base del layout del admin
   const fondo = {
-    background:
-      "linear-gradient(135deg, rgba(13,110,253,0.12), rgba(32,201,151,0.12))",
     minHeight: "100vh",
   };
 
@@ -56,11 +58,13 @@ export default function AdminUI() {
   const handleCrearProyecto = panel.handleCrearProyecto;
   const handleEliminarProyecto = panel.handleEliminarProyecto;
   const handleRenombrarProyecto = panel.handleRenombrarProyecto;
+  const handleCambiarDescripcion = panel.handleCambiarDescripcion;
   const handleActualizarTarea = panel.handleActualizarTarea;
   const handleEliminarTarea = panel.handleEliminarTarea;
   const handleCrearTarea = panel.handleCrearTarea;
   const handleNuevoUsuario = panel.handleNuevoUsuario;
   const handleActualizarUsuario = panel.handleActualizarUsuario;
+  const handleResetUsuarioContrasena = panel.handleResetUsuarioContrasena;
   const handleEliminarUsuario = panel.handleEliminarUsuario;
   const handleAsignarUsuario = panel.handleAsignarUsuario;
   const handleDesasignarUsuario = panel.handleDesasignarUsuario;
@@ -74,22 +78,31 @@ export default function AdminUI() {
   return (
     <div style={fondo} className="py-3">
       <div className="container-fluid">
+        {/*Aviso flotante mientras carga*/}
         {cargando && admin && (
           <div
             className="position-fixed top-0 end-0 p-3"
             style={{ zIndex: 2000, pointerEvents: "none" }}
           >
-            <Alert variant="info" className="shadow" style={{ minWidth: "220px" }}>
+            <Alert
+              variant="info"
+              className="shadow"
+              style={{ minWidth: "220px" }}
+            >
               Cargando datos...
             </Alert>
           </div>
         )}
 
+        {/*Cabecera con logo y salida*/}
         <div className="bg-primary text-white py-3 px-4 rounded-3 mb-3 d-flex justify-content-between align-items-center">
-          <div>
-            <div className="fw-bold fs-4">TeamTask</div>
-            <div className="small opacity-75">
-              Panel de administracion de proyectos
+          <div className="d-flex align-items-center gap-3">
+            <img src={teamtaskLogo} alt="TeamTask" className="banner-logo" />
+            <div>
+              <div className="fw-bold fs-4">TeamTask</div>
+              <div className="small opacity-75">
+                Panel de administracion de proyectos
+              </div>
             </div>
           </div>
           <div className="d-flex align-items-center gap-3">
@@ -107,6 +120,7 @@ export default function AdminUI() {
           <Col md={3} className="mb-3">
             <Card className="shadow-sm">
               <Card.Body>
+                {/*Menu lateral*/}
                 <ListGroup>
                   {MENU.map((item) => (
                     <ListGroup.Item
@@ -124,6 +138,7 @@ export default function AdminUI() {
           </Col>
 
           <Col md={9}>
+            {/*Seccion de proyectos*/}
             {seccion === "proyectos" && (
               <PanelProyectos
                 proyectos={proyectos}
@@ -141,6 +156,7 @@ export default function AdminUI() {
                 onCrearProyecto={handleCrearProyecto}
                 onEliminarProyecto={handleEliminarProyecto}
                 onRenombrarProyecto={handleRenombrarProyecto}
+                onCambiarDescripcion={handleCambiarDescripcion}
                 onClearAlerts={limpiarAlertasProyecto}
                 onSeleccionarProyecto={cargarProyectoDetalle}
                 onAsignarUsuario={handleAsignarUsuario}
@@ -159,6 +175,7 @@ export default function AdminUI() {
               />
             )}
 
+            {/*Seccion de usuarios*/}
             {seccion === "usuarios" && (
               <PanelUsuarios
                 usuarios={usuarios}
@@ -167,34 +184,20 @@ export default function AdminUI() {
                 onSeleccionarUsuario={setUsuarioSeleccionado}
                 onEliminarUsuario={handleEliminarUsuario}
                 onActualizarUsuario={handleActualizarUsuario}
+                onResetUsuarioContrasena={handleResetUsuarioContrasena}
                 nuevoUsuario={nuevoUsuario}
                 onNuevoUsuarioChange={setNuevoUsuario}
                 onCrearUsuario={handleNuevoUsuario}
               />
             )}
 
+            {/*Seccion de estadisticas*/}
             {seccion === "estadisticas" && (
-              <PanelEstadisticas stats={stats} proyectos={proyectos} />
-            )}
-
-            {seccion === "ajustes" && (
-              <Card className="p-4 shadow-sm">
-                <h5>Ajustes rapidos</h5>
-                <p className="text-muted mb-2">
-                  Espacio para accesos rapidos (backups, mantenimiento, roles).
-                </p>
-                <div className="d-flex gap-2 flex-wrap">
-                  <Button variant="outline-secondary" size="sm">
-                    Forzar sincronizacion
-                  </Button>
-                  <Button variant="outline-secondary" size="sm">
-                    Limpiar cache
-                  </Button>
-                  <Button variant="outline-secondary" size="sm">
-                    Revisar logs
-                  </Button>
-                </div>
-              </Card>
+              <PanelEstadisticas
+                stats={stats}
+                proyectos={proyectos}
+                tareas={tareas}
+              />
             )}
           </Col>
         </Row>

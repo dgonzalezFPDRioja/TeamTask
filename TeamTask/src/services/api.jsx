@@ -1,6 +1,7 @@
 //Centralizo aqui las llamadas a la API y manejo el token
 const API_URL = import.meta.env.VITE_API_URL || "https://teamtask.es/API"; //Uso /TeamTask/API si lo tengo asi
 
+//Login y guardo el token que devuelve el backend
 export async function loginRequest(correo, contrasena) {
   const res = await fetch(`${API_URL}/login.php`, {
     method: "POST",
@@ -32,14 +33,17 @@ async function requestWithToken(endpoint, options = {}) {
   return data;
 }
 
+//Traigo los proyectos del usuario logueado
 export async function getMisProyectos() {
   return requestWithToken("proyectos.php?accion=mis");
 }
 
+//Traigo todos los proyectos (admin)
 export async function getProyectos() {
   return requestWithToken("proyectos.php");
 }
 
+//Creo un proyecto nuevo
 export async function crearProyecto(nombre, descripcion) {
   return requestWithToken("proyectos.php", {
     method: "POST",
@@ -47,18 +51,22 @@ export async function crearProyecto(nombre, descripcion) {
   });
 }
 
+//Traigo tareas de un proyecto
 export async function getTareasPorProyecto(proyectoId) {
   return requestWithToken(`tareas.php?proyecto_id=${proyectoId}`);
 }
 
+//Traigo mis tareas
 export async function getMisTareas() {
   return requestWithToken("tareas.php?accion=mis");
 }
 
+//Traigo comentarios de una tarea
 export async function getComentariosTarea(tarea_id) {
   return requestWithToken(`tareas.php?accion=comentarios&tarea_id=${tarea_id}`);
 }
 
+//Agrego un comentario a una tarea
 export async function crearComentarioTarea(tarea_id, texto) {
   return requestWithToken("tareas.php?accion=comentarios", {
     method: "POST",
@@ -66,6 +74,7 @@ export async function crearComentarioTarea(tarea_id, texto) {
   });
 }
 
+//Renombro un proyecto
 export async function renombrarProyecto(nombre, nuevo_nombre, descripcion) {
   return requestWithToken("proyectos.php", {
     method: "PUT",
@@ -73,6 +82,7 @@ export async function renombrarProyecto(nombre, nuevo_nombre, descripcion) {
   });
 }
 
+//Elimino un proyecto
 export async function eliminarProyecto(nombre) {
   return requestWithToken("proyectos.php", {
     method: "DELETE",
@@ -80,14 +90,22 @@ export async function eliminarProyecto(nombre) {
   });
 }
 
+//Traigo usuarios (admin)
 export async function getUsuarios() {
   return requestWithToken("usuarios.php");
 }
 
+//Traigo el usuario del token actual
+export async function getUsuarioActual() {
+  return requestWithToken("usuarios.php?me=1");
+}
+
+//Traigo usuarios asignados a un proyecto
 export async function getUsuariosPorProyecto(proyectoId) {
   return requestWithToken(`usuarios.php?proyecto_id=${proyectoId}`);
 }
 
+//Creo un usuario nuevo
 export async function crearUsuarioApi({ nombre, correo, contrasena, rol }) {
   return requestWithToken("usuarios.php", {
     method: "POST",
@@ -95,6 +113,7 @@ export async function crearUsuarioApi({ nombre, correo, contrasena, rol }) {
   });
 }
 
+//Actualizo un usuario
 export async function actualizarUsuarioApi(correo, cambios) {
   return requestWithToken("usuarios.php", {
     method: "PUT",
@@ -102,6 +121,7 @@ export async function actualizarUsuarioApi(correo, cambios) {
   });
 }
 
+//Elimino un usuario
 export async function eliminarUsuarioApi(correo) {
   return requestWithToken("usuarios.php", {
     method: "DELETE",
@@ -109,6 +129,7 @@ export async function eliminarUsuarioApi(correo) {
   });
 }
 
+//Asigno un usuario a un proyecto
 export async function asignarUsuarioProyecto(proyecto_id, usuario_id) {
   return requestWithToken("proyectos.php?accion=asignar", {
     method: "POST",
@@ -116,6 +137,7 @@ export async function asignarUsuarioProyecto(proyecto_id, usuario_id) {
   });
 }
 
+//Desasigno un usuario de un proyecto
 export async function desasignarUsuarioProyecto(proyecto_id, usuario_id) {
   return requestWithToken("proyectos.php?accion=desasignar", {
     method: "DELETE",
@@ -123,6 +145,7 @@ export async function desasignarUsuarioProyecto(proyecto_id, usuario_id) {
   });
 }
 
+//Creo una tarea
 export async function crearTareaApi(payload) {
   return requestWithToken("tareas.php", {
     method: "POST",
@@ -130,6 +153,7 @@ export async function crearTareaApi(payload) {
   });
 }
 
+//Actualizo una tarea
 export async function actualizarTareaApi(payload) {
   return requestWithToken("tareas.php", {
     method: "PUT",
@@ -137,6 +161,7 @@ export async function actualizarTareaApi(payload) {
   });
 }
 
+//Elimino una tarea
 export async function eliminarTareaApi(tarea_id) {
   return requestWithToken("tareas.php", {
     method: "DELETE",
@@ -144,6 +169,7 @@ export async function eliminarTareaApi(tarea_id) {
   });
 }
 
+//Asigno un usuario a una tarea
 export async function asignarUsuarioTarea(tarea_id, usuario_id) {
   return requestWithToken("tareas.php?accion=asignar", {
     method: "POST",
@@ -151,6 +177,7 @@ export async function asignarUsuarioTarea(tarea_id, usuario_id) {
   });
 }
 
+//Desasigno un usuario de una tarea
 export async function desasignarUsuarioTarea(tarea_id, usuario_id) {
   return requestWithToken("tareas.php?accion=desasignar", {
     method: "DELETE",

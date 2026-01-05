@@ -1,3 +1,4 @@
+//React bootstrap
 import {
   Card,
   Button,
@@ -6,6 +7,7 @@ import {
   Col,
   Accordion,
 } from "react-bootstrap";
+//Componentes del panel de proyectos
 import ModalTarea from "./ModalTarea.jsx";
 import TareasProyecto from "./TareasProyecto.jsx";
 import UsuariosProyecto from "./UsuariosProyecto.jsx";
@@ -29,6 +31,7 @@ export default function PanelProyectos(props) {
   const onCrearProyecto = props.onCrearProyecto;
   const onEliminarProyecto = props.onEliminarProyecto;
   const onRenombrarProyecto = props.onRenombrarProyecto;
+  const onCambiarDescripcion = props.onCambiarDescripcion;
   const onClearAlerts = props.onClearAlerts;
   const onSeleccionarProyecto = props.onSeleccionarProyecto;
   const onAsignarUsuario = props.onAsignarUsuario;
@@ -45,6 +48,7 @@ export default function PanelProyectos(props) {
   const showModalEditarTarea = props.showModalEditarTarea;
   const tareaEditando = props.tareaEditando;
 
+  //Datos derivados segun el proyecto elegido
   const tareasProyecto = proyectoActivo ? tareas[proyectoActivo.id] || [] : [];
   const usuariosAsignados = proyectoActivo
     ? asignaciones[proyectoActivo.id] || []
@@ -52,6 +56,7 @@ export default function PanelProyectos(props) {
 
   return (
     <div className="d-flex flex-column gap-3">
+      {/*Formulario para crear proyecto*/}
       <FormProyectoNuevo
         nombreProyecto={nombreProyecto}
         descripcionProyecto={descripcionProyecto}
@@ -70,6 +75,7 @@ export default function PanelProyectos(props) {
         </div>
         <Row className="g-3">
           <Col md={5}>
+            {/*Listado de proyectos*/}
             <ListaProyectos
               proyectos={proyectos}
               proyectoActivo={proyectoActivo}
@@ -79,10 +85,12 @@ export default function PanelProyectos(props) {
           </Col>
 
           <Col md={7}>
+            {/*Mensaje si no hay proyecto seleccionado*/}
             {!proyectoActivo && (
               <div className="text-muted">Selecciona un proyecto para administrar.</div>
             )}
 
+            {/*Detalle del proyecto seleccionado*/}
             {proyectoActivo && (
               <Card className="p-3 h-100 shadow-sm">
                 <Accordion
@@ -108,6 +116,7 @@ export default function PanelProyectos(props) {
                       {tareasProyecto.length === 0 ? (
                         <div className="text-muted">No hay tareas en este proyecto.</div>
                       ) : (
+                        //Listado de tareas del proyecto
                         <TareasProyecto
                           tareasProyecto={tareasProyecto}
                           asignaciones={asignaciones}
@@ -123,6 +132,7 @@ export default function PanelProyectos(props) {
                   <Accordion.Item eventKey="usuarios">
                     <Accordion.Header>Usuarios del proyecto</Accordion.Header>
                     <Accordion.Body>
+                      {/*Lista de usuarios con asignaciones*/}
                       <UsuariosProyecto
                         usuariosAsignados={usuariosAsignados}
                         usuarios={usuarios}
@@ -134,8 +144,9 @@ export default function PanelProyectos(props) {
                   </Accordion.Item>
 
                   <Accordion.Item eventKey="config">
-                    <Accordion.Header>Configuracion</Accordion.Header>
+                    <Accordion.Header>Configuración</Accordion.Header>
                     <Accordion.Body>
+                      {/*Acciones rapidas del proyecto*/}
                       <div className="d-flex flex-column gap-2">
                         <Button
                           variant="outline-secondary"
@@ -144,6 +155,15 @@ export default function PanelProyectos(props) {
                           }
                         >
                           Renombrar proyecto
+                        </Button>
+                        <Button
+                          variant="outline-secondary"
+                          onClick={() =>
+                            onCambiarDescripcion &&
+                            onCambiarDescripcion(proyectoActivo.id, proyectoActivo.nombre)
+                          }
+                        >
+                          Cambiar descripción
                         </Button>
                         <Button
                           variant="outline-danger"
@@ -161,6 +181,7 @@ export default function PanelProyectos(props) {
         </Row>
       </Card>
 
+      {/*Modal para crear tarea*/}
       <ModalTarea
         key={proyectoActivo?.id || "crear-tarea"}
         show={showModalTarea}
@@ -175,6 +196,7 @@ export default function PanelProyectos(props) {
         }}
       />
 
+      {/*Modal para editar tarea*/}
       <ModalTarea
         key={tareaEditando?.id || "editar-tarea"}
         show={showModalEditarTarea}
