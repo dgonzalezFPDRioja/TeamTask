@@ -1,8 +1,8 @@
 //Textos bonitos para estado y prioridad
 import {
-  normalizarEstadoTexto,
-  normalizarPrioridadTexto,
-} from "../utils/text.js";
+  textoEstado,
+  textoPrioridad,
+} from "../../../services/formateos.js";
 //Llamadas al backend
 import * as api from "../../../services/api.jsx";
 
@@ -156,8 +156,8 @@ export function crearAccionesProyectos(ctx) {
         ...prev,
         [proyecto.id]: (tareasApi || []).map((t) => ({
           ...t,
-          prioridad: normalizarPrioridadTexto(t.prioridad),
-          estado: normalizarEstadoTexto(t.estado),
+          prioridad: textoPrioridad(t.prioridad),
+          estado: textoEstado(t.estado),
           usuarioIds: obtenerUsuarioIds(t),
         })),
       }));
@@ -218,8 +218,8 @@ export function crearAccionesProyectos(ctx) {
         const normalizada = {
           ...t,
           ...cambios,
-          prioridad: normalizarPrioridadTexto(cambios.prioridad),
-          estado: normalizarEstadoTexto(cambios.estado),
+          prioridad: textoPrioridad(cambios.prioridad),
+          estado: textoEstado(cambios.estado),
           fecha_limite: cambios.fecha_limite ?? t.fecha_limite,
         };
         if (normalizada.usuarioIds) {
@@ -261,8 +261,8 @@ export function crearAccionesProyectos(ctx) {
       titulo: tareaData.titulo.trim(),
       descripcion: (tareaData.descripcion || "").trim(),
       usuarioIds: usuariosValidos,
-      prioridad: normalizarPrioridadTexto(tareaData.prioridad),
-      estado: normalizarEstadoTexto(tareaData.estado),
+      prioridad: textoPrioridad(tareaData.prioridad),
+      estado: textoEstado(tareaData.estado),
     };
 
     try {
@@ -315,3 +315,5 @@ export function crearAccionesProyectos(ctx) {
     handleCrearTarea,
   };
 }
+
+

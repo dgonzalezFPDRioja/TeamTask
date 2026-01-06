@@ -11,9 +11,9 @@ import CommentsModal from "../../user/componentes/CommentsModal.jsx";
 import ModalTarea from "../../admin/componentes/ModalTarea.jsx";
 //Textos bonitos para estado y prioridad
 import {
-  normalizarEstadoTexto,
-  normalizarPrioridadTexto,
-} from "../../admin/utils/text.js";
+  textoEstado,
+  textoPrioridad,
+} from "../../../services/formateos.js";
 //Logo
 import teamtaskLogo from "../../../assets/appnofondo.png";
 
@@ -87,8 +87,8 @@ export default function ManagerUI() {
                 //Preparo la tarea para editar en el modal
                 panel.setTareaEditando({
                   ...t,
-                  estado: normalizarEstadoTexto(t.estado),
-                  prioridad: normalizarPrioridadTexto(t.prioridad),
+                  estado: textoEstado(t.estado),
+                  prioridad: textoPrioridad(t.prioridad),
                   usuarioIds: Array.isArray(t.usuarioIds)
                     ? t.usuarioIds
                     : t.usuario_ids
@@ -153,3 +153,5 @@ export default function ManagerUI() {
     </Container>
   );
 }
+
+

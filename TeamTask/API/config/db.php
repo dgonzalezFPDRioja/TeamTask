@@ -1,35 +1,14 @@
 <?php
-
 //Busco la raiz del servidor
 $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
-if (!$documentRoot) {
-    http_response_code(500);
-    echo json_encode(["mensaje" => "No se puede determinar DOCUMENT_ROOT"]);
-    exit;
-}
-
 //Ruta donde viven las credenciales
 $secretsPath = dirname($documentRoot) . '/config/secrets.php';
-
-if (!file_exists($secretsPath)) {
-    http_response_code(500);
-    echo json_encode(["mensaje" => "No se encuentra el archivo de credenciales"]);
-    exit;
-}
-
 //Leo el archivo de claves
 $secrets = require $secretsPath;
 $host = $secrets['DB_HOST'] ?? null;
 $db_name = $secrets['DB_NAME'] ?? null;
 $username = $secrets['DB_USER'] ?? null;
 $password = $secrets['DB_PASS'] ?? null;
-
-//Compruebo que no falte nada
-if (!$host || !$db_name || !$username || !$password) {
-    http_response_code(500);
-    echo json_encode(["mensaje" => "Credenciales incompletas"]);
-    exit;
-}
 
 try {
     //Abro la conexion a la base de datos

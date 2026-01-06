@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 //Llamadas al backend
 import * as api from "../../../services/api.jsx";
 //Ayuda para rol admin
-import { esAdmin } from "../../../services/roles.js";
+import { esAdministrador } from "../../../services/formateos.js";
 //Textos bonitos para tareas
 import {
-  normalizarEstadoTexto,
-  normalizarPrioridadTexto,
-} from "../utils/text.js";
+  textoEstado,
+  textoPrioridad,
+} from "../../../services/formateos.js";
 //Acciones separadas por area
 import { crearAccionesProyectos } from "./accionesProyectos.js";
 import { crearAccionesUsuarios } from "./accionesUsuarios.js";
@@ -32,8 +32,8 @@ const nuevoUsuarioInicial = () => ({
 //Ajusto los datos de una tarea al formato de la vista
 const normalizarTarea = (tarea) => ({
   ...tarea,
-  prioridad: normalizarPrioridadTexto(tarea.prioridad),
-  estado: normalizarEstadoTexto(tarea.estado),
+  prioridad: textoPrioridad(tarea.prioridad),
+  estado: textoEstado(tarea.estado),
   usuarioIds: Array.isArray(tarea.usuarioIds)
     ? tarea.usuarioIds
     : tarea.usuario_ids
@@ -88,7 +88,7 @@ export function useAdminPanel() {
       try {
         const usuario = await api.getUsuarioActual();
         if (!activo) return;
-        if (!usuario || !esAdmin(usuario.rol)) {
+        if (!usuario || !esAdministrador(usuario.rol)) {
           redirectToLogin();
           return;
         }
@@ -112,7 +112,7 @@ export function useAdminPanel() {
       try {
         setCargando(true);
         const [proys, usrs] = await Promise.all([
-          esAdmin(admin.rol)
+          esAdministrador(admin.rol)
             ? api.getProyectos()
             : api.getMisProyectos(),
           api.getUsuarios(),
@@ -302,3 +302,5 @@ export function useAdminPanel() {
 }
 
 export default useAdminPanel;
+
+

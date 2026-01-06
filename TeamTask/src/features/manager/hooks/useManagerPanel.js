@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 //Llamadas al backend
 import * as api from "../../../services/api.jsx";
 //Ayudas para roles
-import { esAdmin, esManager } from "../../../services/roles.js";
+import { esAdministrador, esGerente } from "../../../services/formateos.js";
 //Textos bonitos para mostrar estado y prioridad
 import {
-  normalizarEstadoTexto,
-  normalizarPrioridadTexto,
-} from "../../admin/utils/text.js";
+  textoEstado,
+  textoPrioridad,
+} from "../../../services/formateos.js";
 
 //Paso el estado al formato que espera la API
 const estadoParaApi = (estado) => {
@@ -79,11 +79,11 @@ export function useManagerPanel() {
         const data = await api.getUsuarioActual();
         if (!activo) return;
         sessionStorage.setItem("usuario", JSON.stringify(data));
-        if (esAdmin(data.rol)) {
+        if (esAdministrador(data.rol)) {
           window.location.href = "/admin";
           return;
         }
-        if (!esManager(data.rol)) {
+        if (!esGerente(data.rol)) {
           window.location.href = "/";
           return;
         }
@@ -193,8 +193,8 @@ export function useManagerPanel() {
         proyecto_id: proyectoSeleccionado.id,
         titulo: data.titulo,
         descripcion: data.descripcion,
-        estado: normalizarEstadoTexto(data.estado),
-        prioridad: normalizarPrioridadTexto(data.prioridad),
+        estado: textoEstado(data.estado),
+        prioridad: textoPrioridad(data.prioridad),
         fecha_limite: data.fecha_limite || null,
         usuarioIds,
       };
@@ -249,8 +249,8 @@ export function useManagerPanel() {
                 ...t,
                 titulo: data.titulo,
                 descripcion: data.descripcion,
-                estado: normalizarEstadoTexto(data.estado),
-                prioridad: normalizarPrioridadTexto(data.prioridad),
+                estado: textoEstado(data.estado),
+                prioridad: textoPrioridad(data.prioridad),
                 fecha_limite: data.fecha_limite || null,
                 usuarioIds: nuevosIds,
               }
@@ -336,3 +336,5 @@ export function useManagerPanel() {
 }
 
 export default useManagerPanel;
+
+

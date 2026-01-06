@@ -3,7 +3,7 @@ import { useState } from "react";
 //Piezas visuales
 import { Card, Form, FloatingLabel, ButtonGroup, Button } from "react-bootstrap";
 //Lista de roles
-import { ROL_OPTIONS } from "../../../services/roles.js";
+import { OPCIONES_ROL } from "../../../services/formateos.js";
 
 export default function DetalleUsuario(props) {
   //Mantengo un borrador editable del usuario seleccionado
@@ -76,7 +76,7 @@ export default function DetalleUsuario(props) {
               setDraft((prev) => ({ ...prev, rol: e.target.value }))
             }
           >
-            {ROL_OPTIONS.map((opt) => (
+            {OPCIONES_ROL.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -121,6 +121,8 @@ export default function DetalleUsuario(props) {
     </Card>
   );
 }
+
+
 
 
 

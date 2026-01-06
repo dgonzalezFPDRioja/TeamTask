@@ -1,5 +1,5 @@
-//Centralizo aqui las llamadas a la API y manejo el token
-const API_URL = import.meta.env.VITE_API_URL || "https://teamtask.es/API"; //Uso /TeamTask/API si lo tengo asi
+//Hago aqui las llamadas a la API y manejo el token
+const API_URL = import.meta.env.VITE_API_URL || "https://teamtask.es/API";
 
 //Login y guardo el token que devuelve el backend
 export async function loginRequest(correo, contrasena) {

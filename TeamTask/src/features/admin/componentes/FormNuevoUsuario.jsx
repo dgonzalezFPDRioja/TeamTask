@@ -1,7 +1,7 @@
 //Piezas visuales
 import { Card, Alert, Form, Row, Col, Button, FloatingLabel } from "react-bootstrap";
 //Lista de roles disponibles
-import { ROL_OPTIONS } from "../../../services/roles.js";
+import { OPCIONES_ROL } from "../../../services/formateos.js";
 
 export default function FormNuevoUsuario(props) {
   //Creo usuarios nuevos con validaciones minimas
@@ -84,7 +84,7 @@ export default function FormNuevoUsuario(props) {
                   }))
                 }
               >
-                {ROL_OPTIONS.map((opt) => (
+                {OPCIONES_ROL.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -101,5 +101,7 @@ export default function FormNuevoUsuario(props) {
     </Card>
   );
 }
+
+
 
 
