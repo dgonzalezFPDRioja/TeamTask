@@ -292,6 +292,7 @@ export function useAdminPanel() {
     limpiarAlertasProyecto,
     setErrorProyecto,
     setMensajeProyecto,
+    setErrorUsuario,
   };
 }
 

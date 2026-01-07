@@ -1,13 +1,7 @@
 //Herramientas para estado y efectos
 import { useEffect, useState } from "react";
 //Piezas visuales
-import {
-  Card,
-  Row,
-  Col,
-  ListGroup,
-  Badge,
-} from "react-bootstrap";
+import { Card, Row, Col, ListGroup, Badge } from "react-bootstrap";
 //Form y detalle del usuario
 import FormNuevoUsuario from "./FormNuevoUsuario.jsx";
 import DetalleUsuario from "./DetalleUsuario.jsx";
@@ -24,19 +18,40 @@ export default function PanelUsuarios(props) {
   const nuevoUsuario = props.nuevoUsuario;
   const onNuevoUsuarioChange = props.onNuevoUsuarioChange;
   const onCrearUsuario = props.onCrearUsuario;
+  const onClearErrorUsuario = props.onClearErrorUsuario;
   const [draft, setDraft] = useState(null);
+  const [mensajeEdicion, setMensajeEdicion] = useState("");
 
   useEffect(() => {
     //Sincronizo el borrador cuando cambia la seleccion
     setDraft(usuarioSeleccionado || null);
+    setMensajeEdicion("");
   }, [usuarioSeleccionado]);
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     //Guardo los cambios del usuario actual
-    if (!draft) return;
-    onActualizarUsuario("nombre", draft.nombre);
-    onActualizarUsuario("correo", draft.correo);
-    onActualizarUsuario("rol", draft.rol);
+    if (!draft || !usuarioSeleccionado) return;
+    setMensajeEdicion("");
+    const cambioNombre = draft.nombre !== usuarioSeleccionado.nombre;
+    const cambioCorreo = draft.correo !== usuarioSeleccionado.correo;
+    const cambioRol = draft.rol !== usuarioSeleccionado.rol;
+    if (!cambioNombre && !cambioCorreo && !cambioRol) {
+      setMensajeEdicion("No hay cambios para guardar.");
+      return;
+    }
+    if (cambioNombre) {
+      const ok = await onActualizarUsuario("nombre", draft.nombre);
+      if (!ok) return;
+    }
+    if (cambioRol) {
+      const ok = await onActualizarUsuario("rol", draft.rol);
+      if (!ok) return;
+    }
+    if (cambioCorreo) {
+      const ok = await onActualizarUsuario("correo", draft.correo);
+      if (!ok) return;
+    }
+    setMensajeEdicion("Cambios guardados correctamente.");
   };
 
   return (
@@ -47,6 +62,7 @@ export default function PanelUsuarios(props) {
         onNuevoUsuarioChange={onNuevoUsuarioChange}
         onCrearUsuario={onCrearUsuario}
         errorUsuario={errorUsuario}
+        onClearError={onClearErrorUsuario}
       />
 
       <Card className="p-4 shadow-sm">

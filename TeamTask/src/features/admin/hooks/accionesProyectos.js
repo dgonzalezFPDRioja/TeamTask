@@ -64,8 +64,6 @@ export function crearAccionesProyectos(ctx) {
 
   //Elimino un proyecto y limpio tareas/asignaciones asociadas
   const handleEliminarProyecto = async (proyectoId) => {
-    const confirmado = window.confirm("Eliminar este proyecto?");
-    if (!confirmado) return;
     const proyecto = ctx.proyectos.find((p) => p.id === proyectoId);
     if (proyecto) {
       try {
@@ -91,34 +89,45 @@ export function crearAccionesProyectos(ctx) {
   };
 
   //Renombro un proyecto y actualizo la vista activa
-  const handleRenombrarProyecto = (proyectoId, nombreActual) => {
-    const nuevoNombre = window.prompt(
-      "Nuevo nombre del proyecto?",
-      nombreActual || ""
-    );
+  const handleRenombrarProyecto = (proyectoId, nombreActual, nuevoNombre) => {
     if (!nuevoNombre || !nuevoNombre.trim()) return;
+    ctx.setMensajeProyecto("");
+    ctx.setErrorProyecto("");
+    const nombreLimpio = nuevoNombre.trim();
+    const yaExiste = ctx.proyectos.some(
+      (p) =>
+        p.id !== proyectoId &&
+        p.nombre &&
+        p.nombre.trim().toLowerCase() === nombreLimpio.toLowerCase()
+    );
+    if (yaExiste) {
+      ctx.setErrorProyecto(
+        "No puedes renombrar un proyecto con el mismo nombre que otro"
+      );
+      return;
+    }
     const descripcionActual = ctx.proyectos.find((p) => p.id === proyectoId)
       ?.descripcion;
     api
-      .renombrarProyecto(nombreActual, nuevoNombre.trim(), descripcionActual)
+      .renombrarProyecto(nombreActual, nombreLimpio, descripcionActual)
       .catch((err) => console.error(err));
     ctx.setProyectos((prev) =>
       prev.map((p) =>
-        p.id === proyectoId ? { ...p, nombre: nuevoNombre.trim() } : p
+        p.id === proyectoId ? { ...p, nombre: nombreLimpio } : p
       )
     );
     if (ctx.proyectoActivo?.id === proyectoId) {
-      ctx.setProyectoActivo((prev) => ({ ...prev, nombre: nuevoNombre.trim() }));
+      ctx.setProyectoActivo((prev) => ({ ...prev, nombre: nombreLimpio }));
     }
   };
 
   //Cambio la descripcion del proyecto
-  const handleCambiarDescripcion = (proyectoId, nombreActual) => {
-    const nuevaDescripcion = window.prompt(
-      "Nueva descripción del proyecto?",
-      ""
-    );
-    if (nuevaDescripcion === null) return;
+  const handleCambiarDescripcion = (
+    proyectoId,
+    nombreActual,
+    nuevaDescripcion
+  ) => {
+    if (nuevaDescripcion === undefined || nuevaDescripcion === null) return;
     api
       .renombrarProyecto(nombreActual, nombreActual, nuevaDescripcion.trim())
       .catch((err) => console.error(err));
@@ -305,5 +314,6 @@ export function crearAccionesProyectos(ctx) {
     handleCrearTarea,
   };
 }
+
 
 

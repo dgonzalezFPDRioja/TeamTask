@@ -1,5 +1,13 @@
 //Piezas visuales
-import { Card, Alert, Form, Row, Col, Button, FloatingLabel } from "react-bootstrap";
+import {
+  Card,
+  Alert,
+  Form,
+  Row,
+  Col,
+  Button,
+  FloatingLabel,
+} from "react-bootstrap";
 //Lista de roles disponibles
 import { OPCIONES_ROL } from "../../../services/formateos.js";
 
@@ -9,13 +17,19 @@ export default function FormNuevoUsuario(props) {
   const onNuevoUsuarioChange = props.onNuevoUsuarioChange;
   const onCrearUsuario = props.onCrearUsuario;
   const errorUsuario = props.errorUsuario;
+  const onClearError = props.onClearError;
 
   return (
-    <Card className="p-4 shadow-sm">
+      <Card className="p-4 shadow-sm">
       <h5 className="mb-3">Crear usuario</h5>
       {/*Mensaje de error*/}
       {errorUsuario && (
-        <Alert variant="danger" className="mb-3">
+        <Alert
+          variant="danger"
+          className="mb-3"
+          dismissible
+          onClose={onClearError}
+        >
           {errorUsuario}
         </Alert>
       )}

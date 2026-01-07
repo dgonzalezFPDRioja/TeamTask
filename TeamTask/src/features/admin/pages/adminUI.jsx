@@ -53,6 +53,7 @@ export default function AdminUI() {
   const nuevoUsuario = panel.nuevoUsuario;
   const setNuevoUsuario = panel.setNuevoUsuario;
   const errorUsuario = panel.errorUsuario;
+  const setErrorUsuario = panel.setErrorUsuario;
   const stats = panel.stats;
   const handleLogout = panel.handleLogout;
   const handleCrearProyecto = panel.handleCrearProyecto;
@@ -188,6 +189,7 @@ export default function AdminUI() {
                 nuevoUsuario={nuevoUsuario}
                 onNuevoUsuarioChange={setNuevoUsuario}
                 onCrearUsuario={handleNuevoUsuario}
+                onClearErrorUsuario={() => setErrorUsuario("")}
               />
             )}
 

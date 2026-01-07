@@ -6,21 +6,30 @@ export function crearAccionesUsuarios(ctx) {
   const handleNuevoUsuario = async (e) => {
     e.preventDefault();
     ctx.setErrorUsuario("");
+    const correoLimpio = ctx.nuevoUsuario.correo.trim();
     if (
       !ctx.nuevoUsuario.nombre.trim() ||
-      !ctx.nuevoUsuario.correo.trim() ||
+      !correoLimpio ||
       !ctx.nuevoUsuario.contrasena.trim()
     ) {
       ctx.setErrorUsuario(
-        "Completa nombre, correo y contraseña para crear el usuario"
+        "Completa nombre, correo y contrasena para crear el usuario"
       );
+      return;
+    }
+    const yaExiste = ctx.usuarios.some(
+      (u) =>
+        u.correo && u.correo.trim().toLowerCase() === correoLimpio.toLowerCase()
+    );
+    if (yaExiste) {
+      ctx.setErrorUsuario("Ya existe un usuario con ese correo");
       return;
     }
 
     try {
       const creado = await api.crearUsuarioApi({
         nombre: ctx.nuevoUsuario.nombre.trim(),
-        correo: ctx.nuevoUsuario.correo.trim(),
+        correo: correoLimpio,
         contrasena: ctx.nuevoUsuario.contrasena.trim(),
         rol: ctx.nuevoUsuario.rol,
       });
@@ -28,7 +37,7 @@ export function crearAccionesUsuarios(ctx) {
         creado?.usuario || creado || {
           id: Date.now(),
           nombre: ctx.nuevoUsuario.nombre.trim(),
-          correo: ctx.nuevoUsuario.correo.trim(),
+          correo: correoLimpio,
           rol: ctx.nuevoUsuario.rol,
         };
       ctx.setUsuarios((prev) => [usuarioCreado, ...prev]);
@@ -46,11 +55,27 @@ export function crearAccionesUsuarios(ctx) {
 
   //Actualizo un campo del usuario seleccionado y sincronizo en la lista
   const handleActualizarUsuario = async (campo, valor) => {
-    if (!ctx.usuarioSeleccionado) return;
+    if (!ctx.usuarioSeleccionado) return false;
+    ctx.setErrorUsuario("");
     const correoActual = ctx.usuarioSeleccionado.correo;
     const payload = { correo: correoActual };
     if (campo === "correo") {
-      payload.nuevo_correo = valor;
+      const correoNuevo = (valor || "").trim();
+      if (!correoNuevo) {
+        ctx.setErrorUsuario("Indica un correo valido");
+        return false;
+      }
+      const yaExiste = ctx.usuarios.some(
+        (u) =>
+          u.id !== ctx.usuarioSeleccionado.id &&
+          u.correo &&
+          u.correo.trim().toLowerCase() === correoNuevo.toLowerCase()
+      );
+      if (yaExiste) {
+        ctx.setErrorUsuario("Ya existe un usuario con ese correo");
+        return false;
+      }
+      payload.nuevo_correo = correoNuevo;
     } else {
       payload[campo] = valor;
     }
@@ -62,8 +87,10 @@ export function crearAccionesUsuarios(ctx) {
           u.id === ctx.usuarioSeleccionado.id ? { ...u, [campo]: valor } : u
         )
       );
+      return true;
     } catch (err) {
       ctx.setErrorUsuario(err.message || "No se pudo actualizar el usuario");
+      return false;
     }
   };
 
@@ -140,3 +167,6 @@ export function crearAccionesUsuarios(ctx) {
     handleDesasignarUsuario,
   };
 }
+
+
+

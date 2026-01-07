@@ -1,13 +1,9 @@
+//Herramientas de estado
+import { useState } from "react";
 //React bootstrap
-import {
-  Card,
-  Button,
-  Form,
-  Row,
-  Col,
-  Accordion,
-} from "react-bootstrap";
+import { Card, Button, Row, Col, Accordion } from "react-bootstrap";
 //Componentes del panel de proyectos
+import ModalAccionSimple from "./ModalAccionSimple.jsx";
 import ModalTarea from "./ModalTarea.jsx";
 import TareasProyecto from "./TareasProyecto.jsx";
 import UsuariosProyecto from "./UsuariosProyecto.jsx";
@@ -53,6 +49,77 @@ export default function PanelProyectos(props) {
   const usuariosAsignados = proyectoActivo
     ? asignaciones[proyectoActivo.id] || []
     : [];
+  const [showModalProyecto, setShowModalProyecto] = useState(false);
+  const [accionProyecto, setAccionProyecto] = useState(null);
+  const [valorProyecto, setValorProyecto] = useState("");
+
+  const abrirModalProyecto = (tipo) => {
+    if (!proyectoActivo) return;
+    setAccionProyecto({ tipo, proyecto: proyectoActivo });
+    if (tipo === "renombrar") {
+      setValorProyecto(proyectoActivo.nombre || "");
+    } else if (tipo === "descripcion") {
+      setValorProyecto(proyectoActivo.descripcion || "");
+    } else {
+      setValorProyecto("");
+    }
+    setShowModalProyecto(true);
+  };
+
+  const cerrarModalProyecto = () => {
+    setShowModalProyecto(false);
+    setAccionProyecto(null);
+    setValorProyecto("");
+  };
+
+  const confirmarAccionProyecto = () => {
+    if (!accionProyecto) return;
+    const { tipo, proyecto } = accionProyecto;
+    if (tipo === "renombrar") {
+      onRenombrarProyecto(proyecto.id, proyecto.nombre, valorProyecto);
+    } else if (tipo === "descripcion" && onCambiarDescripcion) {
+      onCambiarDescripcion(proyecto.id, proyecto.nombre, valorProyecto);
+    } else if (tipo === "eliminar") {
+      onEliminarProyecto(proyecto.id);
+    }
+    cerrarModalProyecto();
+  };
+
+  const tipoModal = accionProyecto?.tipo;
+  const confirmarBloqueado =
+    tipoModal === "renombrar" && !valorProyecto.trim();
+  const propsModal = (() => {
+    if (!tipoModal) return {};
+    if (tipoModal === "renombrar") {
+      return {
+        titulo: "Renombrar proyecto",
+        descripcion: "Actualiza el nombre visible del proyecto.",
+        confirmLabel: "Guardar",
+        confirmVariant: "primary",
+        inputLabel: "Nuevo nombre",
+        inputPlaceholder: "Nombre del proyecto",
+        inputAs: "input",
+      };
+    }
+    if (tipoModal === "descripcion") {
+      return {
+        titulo: "Cambiar descripcion",
+        descripcion: "Edita la descripcion para este proyecto.",
+        confirmLabel: "Guardar",
+        confirmVariant: "primary",
+        inputLabel: "Descripcion",
+        inputPlaceholder: "Descripcion del proyecto",
+        inputAs: "textarea",
+      };
+    }
+    return {
+      titulo: "Eliminar proyecto",
+      descripcion:
+        "Esta accion eliminara el proyecto junto con sus tareas y asignaciones.",
+      confirmLabel: "Eliminar",
+      confirmVariant: "danger",
+    };
+  })();
 
   return (
     <div className="d-flex flex-column gap-3">
@@ -150,24 +217,19 @@ export default function PanelProyectos(props) {
                       <div className="d-flex flex-column gap-2">
                         <Button
                           variant="outline-secondary"
-                          onClick={() =>
-                            onRenombrarProyecto(proyectoActivo.id, proyectoActivo.nombre)
-                          }
+                          onClick={() => abrirModalProyecto("renombrar")}
                         >
                           Renombrar proyecto
                         </Button>
                         <Button
                           variant="outline-secondary"
-                          onClick={() =>
-                            onCambiarDescripcion &&
-                            onCambiarDescripcion(proyectoActivo.id, proyectoActivo.nombre)
-                          }
+                          onClick={() => abrirModalProyecto("descripcion")}
                         >
                           Cambiar descripción
                         </Button>
                         <Button
                           variant="outline-danger"
-                          onClick={() => onEliminarProyecto(proyectoActivo.id)}
+                          onClick={() => abrirModalProyecto("eliminar")}
                         >
                           Eliminar proyecto
                         </Button>
@@ -215,6 +277,24 @@ export default function PanelProyectos(props) {
           onSetTareaEditando(null);
         }}
       />
+
+      {/*Modal para acciones del proyecto*/}
+      <ModalAccionSimple
+        show={showModalProyecto}
+        titulo={propsModal.titulo}
+        descripcion={propsModal.descripcion}
+        confirmLabel={propsModal.confirmLabel}
+        confirmVariant={propsModal.confirmVariant}
+        inputLabel={propsModal.inputLabel}
+        inputPlaceholder={propsModal.inputPlaceholder}
+        inputAs={propsModal.inputAs}
+        inputValue={valorProyecto}
+        onInputChange={setValorProyecto}
+        onConfirm={confirmarAccionProyecto}
+        onClose={cerrarModalProyecto}
+        confirmDisabled={confirmarBloqueado}
+      />
     </div>
   );
 }
+
