@@ -1,8 +1,7 @@
-//Piezas del modal
 import { Modal, Form, Button } from "react-bootstrap";
 
 export default function ModalAccionSimple(props) {
-  //Modal reutilizable para confirmar acciones o pedir un texto corto
+  //Confirmar acciones o pedir nombre
   const show = props.show;
   const titulo = props.titulo;
   const descripcion = props.descripcion;
