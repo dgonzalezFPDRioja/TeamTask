@@ -32,9 +32,11 @@ export default function PanelEstadisticas(props) {
         </Col>
         <Col md={3}>
           <Card className="p-3 shadow-sm">
-            {/*Promedio simple de usuarios por proyecto*/}
-            <div className="text-muted small">Usuarios por proyecto</div>
-            <div className="fw-bold fs-4">{stats.usuariosPorProyecto}</div>
+            {/*Porcentaje global de tareas completadas*/}
+            <div className="text-muted small">% tareas completadas</div>
+            <div className="fw-bold fs-4">
+              {stats.porcentajeTareasCompletadas}%
+            </div>
           </Card>
         </Col>
       </Row>

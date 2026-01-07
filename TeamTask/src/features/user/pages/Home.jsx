@@ -7,7 +7,9 @@ import {
   getTareasPorProyecto,
   actualizarTareaApi,
   getMisTareas,
+  getComentariosCount,
 } from "../../../services/api.jsx";
+import { normalizarTareaApi } from "../../../services/formateos.js";
 //Partes de la pantalla de usuario
 import MisProyectos from "../componentes/MisProyectos.jsx";
 import TareasProyectoTabla from "../componentes/TareasProyectoTabla.jsx";
@@ -102,7 +104,18 @@ function HomeUsuario({ usuario, onLogout }) {
 
     try {
       const data = await getTareasPorProyecto(proyecto.id);
-      setTareas(data || []);
+      const tareasBase = (data || []).map(normalizarTareaApi);
+      const tareasConComentarios = await Promise.all(
+        tareasBase.map(async (t) => {
+          try {
+            const res = await getComentariosCount(t.id);
+            return { ...t, comentarios_count: Number(res?.total || 0) };
+          } catch {
+            return { ...t, comentarios_count: 0 };
+          }
+        })
+      );
+      setTareas(tareasConComentarios);
     } catch (e) {
       console.error(e);
       setError(e.message);
@@ -137,18 +150,17 @@ function HomeUsuario({ usuario, onLogout }) {
         const ahora = new Date();
         const hace7 = new Date();
         hace7.setDate(ahora.getDate() - 7);
-        const pendientes = (data || []).filter(
+        const tareasNormalizadas = (data || []).map(normalizarTareaApi);
+        const pendientes = tareasNormalizadas.filter(
           (t) => (t.estado || "").toLowerCase() === "pendiente"
         ).length;
-        const enProgreso = (data || []).filter(
-          (t) =>
-            (t.estado || "").toLowerCase() === "en progreso" ||
-            (t.estado || "").toLowerCase() === "en_progreso"
+        const enProgreso = tareasNormalizadas.filter(
+          (t) => (t.estado || "").toLowerCase() === "en progreso"
         ).length;
-        const completadasSemana = (data || []).filter((t) => {
+        const completadasSemana = tareasNormalizadas.filter((t) => {
           const est = (t.estado || "").toLowerCase();
           if (est !== "completada") return false;
-          const fechaStr = t.fecha_creacion || t.fecha || t.fecha_limite;
+          const fechaStr = t.fecha_creacion;
           if (!fechaStr) return true;
           const fecha = new Date(fechaStr);
           return fecha >= hace7;
@@ -183,7 +195,7 @@ function HomeUsuario({ usuario, onLogout }) {
             </div>
           </div>
           <Button variant="light" size="sm" onClick={onLogout}>
-            Cerrar sesion
+            Cerrar sesión
           </Button>
         </div>
 

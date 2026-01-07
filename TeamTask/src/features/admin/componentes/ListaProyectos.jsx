@@ -12,7 +12,7 @@ export default function ListaProyectos(props) {
     //Mensaje si no hay proyectos
     return (
       <Card className="p-3">
-        <div className="text-muted">No hay proyectos todavia.</div>
+        <div className="text-muted">No hay proyectos todavía.</div>
       </Card>
     );
   }
@@ -36,7 +36,7 @@ export default function ListaProyectos(props) {
               {/*Nombre y descripcion*/}
               <div className="fw-bold">{p.nombre}</div>
               <div className="text-muted small">
-                {p.descripcion || "Sin descripcion"}
+                {p.descripcion || "Sin descripción"}
               </div>
             </div>
             {/*Contador simple*/}

@@ -23,7 +23,7 @@ export default function StatsTareas(props) {
       <Col md={4}>
         <Card className="p-3 shadow-sm">
           {/*Cantidad de tareas completadas en la ultima semana*/}
-          <div className="text-muted small">Completadas (ultima semana)</div>
+          <div className="text-muted small">Completadas (última semana)</div>
           <div className="fw-bold fs-4">{stats.completadasSemana}</div>
         </Card>
       </Col>

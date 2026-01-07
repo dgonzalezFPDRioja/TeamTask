@@ -5,10 +5,7 @@ import * as api from "../../../services/api.jsx";
 //Ayuda para rol admin
 import { esAdministrador } from "../../../services/formateos.js";
 //Textos bonitos para tareas
-import {
-  textoEstado,
-  textoPrioridad,
-} from "../../../services/formateos.js";
+import { normalizarTareaApi } from "../../../services/formateos.js";
 //Acciones separadas por area
 import { crearAccionesProyectos } from "./accionesProyectos.js";
 import { crearAccionesUsuarios } from "./accionesUsuarios.js";
@@ -26,22 +23,7 @@ const nuevoUsuarioInicial = () => ({
   nombre: "",
   correo: "",
   contrasena: "",
-  rol: "USER",
-});
-
-//Ajusto los datos de una tarea al formato de la vista
-const normalizarTarea = (tarea) => ({
-  ...tarea,
-  prioridad: textoPrioridad(tarea.prioridad),
-  estado: textoEstado(tarea.estado),
-  usuarioIds: Array.isArray(tarea.usuarioIds)
-    ? tarea.usuarioIds
-    : tarea.usuario_ids
-    ? tarea.usuario_ids
-        .split(",")
-        .map((n) => Number(n))
-        .filter((n) => !Number.isNaN(n))
-    : [],
+  rol: "USUARIO",
 });
 
 export function useAdminPanel() {
@@ -137,7 +119,7 @@ export function useAdminPanel() {
           proyectos.map(async (p) => {
             try {
               const tareasApi = await api.getTareasPorProyecto(p.id);
-              return [p.id, (tareasApi || []).map(normalizarTarea)];
+              return [p.id, (tareasApi || []).map(normalizarTareaApi)];
             } catch (err) {
               console.error("Error cargando tareas del proyecto", p.id, err);
               return [p.id, []];
@@ -236,9 +218,21 @@ export function useAdminPanel() {
       ).length;
       return acc + abiertas;
     }, 0),
-    usuariosPorProyecto: Math.round(
-      proyectos.length ? usuarios.length / proyectos.length : 0
-    ),
+    porcentajeTareasCompletadas: (() => {
+      let total = 0;
+      let completadas = 0;
+      proyectos.forEach((p) => {
+        const tareasProyecto = tareas[p.id] || [];
+        total += tareasProyecto.length;
+        tareasProyecto.forEach((t) => {
+          if ((t.estado || "").toLowerCase() === "completada") {
+            completadas += 1;
+          }
+        });
+      });
+      if (total === 0) return 0;
+      return Math.round((completadas / total) * 100);
+    })(),
   };
 
   const limpiarAlertasProyecto = () => {

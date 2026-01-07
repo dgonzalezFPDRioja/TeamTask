@@ -1,4 +1,4 @@
-//Herramientas para rutas
+//rutas
 import { Routes, Route } from "react-router-dom";
 //Pantallas principales
 import Home from "./features/user/pages/Home";
@@ -7,7 +7,7 @@ import AdminUI from "./features/admin/pages/adminUI";
 import ManagerUI from "./features/manager/pages/managerUI";
 
 function App() {
-  //Defino las rutas principales de la app
+  //Defino las rutas
   return (
     <Routes>
       {/*Ruta principal para usuarios*/}

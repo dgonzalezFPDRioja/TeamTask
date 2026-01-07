@@ -68,7 +68,7 @@ export default function FormNuevoUsuario(props) {
                   }))
                 }
                 required
-                placeholder="••••••"
+                placeholder="Contraseña"
               />
             </FloatingLabel>
           </Col>

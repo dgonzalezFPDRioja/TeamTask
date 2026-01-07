@@ -21,7 +21,7 @@ export default function MisProyectos(props) {
           </div>
         ) : proyectos.length === 0 ? (
           //Mensaje si no hay proyectos
-          <p className="text-muted">No tienes proyectos asignados todavia.</p>
+          <p className="text-muted">No tienes proyectos asignados todavía.</p>
         ) : (
           //Lista de proyectos disponibles
           <div className="d-flex flex-column gap-2">

@@ -25,17 +25,39 @@ export const OPCIONES_ROL = [
   { value: "ADMIN", label: "Admin" },
 ];
 
-//Ajusto etiquetas de estado a un formato consistente
+//Ajusto etiquetas de estado
 export const textoEstado = (estado) => {
   if (estado === "en_progreso") return "En progreso";
   if (estado === "completada") return "Completada";
   return "Pendiente";
 };
 
-//Ajusto etiquetas de prioridad a un formato consistente
+//Ajusto etiquetas de prioridad
 export const textoPrioridad = (prioridad) => {
-  if (prioridad === "alta") return "Alta";
-  if (prioridad === "media") return "Media";
+  const p = (prioridad || "").toLowerCase().trim();
+  if (p === "alta") return "Alta";
+  if (p === "media") return "Media";
   return "Baja";
+};
+
+//Convierte una lista de ids en texto a numeros
+export const parseUsuarioIds = (usuarioIds) => {
+  if (!usuarioIds) return [];
+  return String(usuarioIds)
+    .split(",")
+    .map((n) => Number(n))
+    .filter((n) => !Number.isNaN(n));
+};
+
+//Normaliza tareas que vienen desde la API
+export const normalizarTareaApi = (tarea) => {
+  if (!tarea) return tarea;
+  const { usuario_ids, ...rest } = tarea;
+  return {
+    ...rest,
+    prioridad: textoPrioridad(rest.prioridad),
+    estado: textoEstado(rest.estado),
+    usuarioIds: parseUsuarioIds(usuario_ids),
+  };
 };
 

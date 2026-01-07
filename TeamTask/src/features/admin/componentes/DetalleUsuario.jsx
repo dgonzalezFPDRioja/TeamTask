@@ -71,7 +71,7 @@ export default function DetalleUsuario(props) {
         {/*Rol*/}
         <FloatingLabel label="Rol" className="mb-3">
           <Form.Select
-            value={draft?.rol || "USER"}
+            value={draft?.rol || "USUARIO"}
             onChange={(e) =>
               setDraft((prev) => ({ ...prev, rol: e.target.value }))
             }

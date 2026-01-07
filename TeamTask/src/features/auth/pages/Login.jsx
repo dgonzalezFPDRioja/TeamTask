@@ -60,7 +60,7 @@ function Login() {
             className="login-hero-image"
           />
           {/*Titulo*/}
-          <Card.Title className="text-center mb-4">Iniciar sesion</Card.Title>
+          <Card.Title className="text-center mb-4">Iniciar sesión</Card.Title>
 
           {/*Mensaje si hay error*/}
           {error && <Alert variant="danger">{error}</Alert>}

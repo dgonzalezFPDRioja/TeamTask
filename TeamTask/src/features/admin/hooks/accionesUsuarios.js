@@ -36,7 +36,7 @@ export function crearAccionesUsuarios(ctx) {
         nombre: "",
         correo: "",
         contrasena: "",
-        rol: "USER",
+        rol: "USUARIO",
       });
       ctx.setErrorUsuario("");
     } catch (err) {
@@ -71,7 +71,7 @@ export function crearAccionesUsuarios(ctx) {
   const handleResetUsuarioContrasena = async (correo, nuevaContrasena) => {
     ctx.setErrorUsuario("");
     if (!correo || !nuevaContrasena?.trim()) {
-      ctx.setErrorUsuario("Indica una contraseña valida");
+      ctx.setErrorUsuario("Indica una contraseña válida");
       return;
     }
     try {

@@ -101,7 +101,7 @@ export default function AdminUI() {
             <div>
               <div className="fw-bold fs-4">TeamTask</div>
               <div className="small opacity-75">
-                Panel de administracion de proyectos
+                Panel de administración de proyectos
               </div>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function AdminUI() {
               <div className="small">Administrador</div>
             </div>
             <Button size="sm" variant="light" onClick={handleLogout}>
-              Cerrar sesion
+            Cerrar sesión
             </Button>
           </div>
         </div>

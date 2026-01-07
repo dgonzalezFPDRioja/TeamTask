@@ -56,7 +56,7 @@ export default function ModalTarea(props) {
         <Modal.Body className="d-flex flex-column gap-3">
           {/*Campo de titulo*/}
           <Form.Group>
-            <Form.Label>Titulo</Form.Label>
+            <Form.Label>Título</Form.Label>
             <Form.Control
               value={form.titulo}
               onChange={(e) =>
@@ -67,7 +67,7 @@ export default function ModalTarea(props) {
           </Form.Group>
           {/*Campo de descripcion*/}
           <Form.Group>
-            <Form.Label>Descripcion</Form.Label>
+            <Form.Label>Descripción</Form.Label>
             <Form.Control
               as="textarea"
               rows={2}
@@ -155,7 +155,7 @@ export default function ModalTarea(props) {
                     setUsuarioAAgregar("");
                   }}
                 >
-                  Anadir
+                  Añadir
                 </Button>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function ModalTarea(props) {
             </Col>
             <Col>
               <Form.Group>
-                <Form.Label>Fecha limite</Form.Label>
+                <Form.Label>Fecha límite</Form.Label>
                 {/*Selector de fecha*/}
                 <Form.Control
                   type="date"

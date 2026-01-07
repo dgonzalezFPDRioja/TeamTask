@@ -10,10 +10,6 @@ import CommentsModal from "../../user/componentes/CommentsModal.jsx";
 //Modal para crear/editar tareas
 import ModalTarea from "../../admin/componentes/ModalTarea.jsx";
 //Textos bonitos para estado y prioridad
-import {
-  textoEstado,
-  textoPrioridad,
-} from "../../../services/formateos.js";
 //Logo
 import teamtaskLogo from "../../../assets/appnofondo.png";
 
@@ -50,7 +46,7 @@ export default function ManagerUI() {
                 </Stack>
               </Stack>
               <Button variant="light" size="sm" onClick={panel.handleLogout}>
-                Cerrar sesion
+                Cerrar sesión
               </Button>
             </Stack>
           </Card.Body>
@@ -87,16 +83,9 @@ export default function ManagerUI() {
                 //Preparo la tarea para editar en el modal
                 panel.setTareaEditando({
                   ...t,
-                  estado: textoEstado(t.estado),
-                  prioridad: textoPrioridad(t.prioridad),
-                  usuarioIds: Array.isArray(t.usuarioIds)
-                    ? t.usuarioIds
-                    : t.usuario_ids
-                    ? t.usuario_ids
-                        .split(",")
-                        .map((n) => Number(n))
-                        .filter((n) => !Number.isNaN(n))
-                    : [],
+                  estado: t.estado,
+                  prioridad: t.prioridad,
+                  usuarioIds: Array.isArray(t.usuarioIds) ? t.usuarioIds : [],
                 });
                 panel.setShowEditarTarea(true);
               }}

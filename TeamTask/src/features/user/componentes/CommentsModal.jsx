@@ -76,8 +76,8 @@ export default function CommentsModal(props) {
             {comentarios.map((c, idx) => (
               <ListGroup.Item key={idx}>
                 {/*Autor y contenido*/}
-                <div className="fw-bold">{c.autor || c.author || "Anonimo"}</div>
-                <div className="text-muted small">{c.texto || c.contenido || c.comentario || c.text || ""}</div>
+                <div className="fw-bold">{c.autor}</div>
+                <div className="text-muted small">{c.texto}</div>
                 {c.fecha_creacion && (
                   <div className="text-muted small">{c.fecha_creacion}</div>
                 )}
@@ -95,7 +95,7 @@ export default function CommentsModal(props) {
               rows={2}
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
-              placeholder="Deja tu comentario aqui"
+              placeholder="Deja tu comentario aquí"
             />
           </Form.Group>
           {/*Boton para enviar*/}

@@ -15,9 +15,10 @@ export default function TareasProyectoTabla(props) {
   const onEditarTarea = props.onEditarTarea;
 
   const ordenarTareas = (lista) => {
+    const normalizarPrioridad = (p) => String(p || "").trim().toLowerCase();
     //Pongo un peso segun la prioridad para ordenar facil
     const prioridadPeso = (p) => {
-      const v = (p || "").toLowerCase();
+      const v = normalizarPrioridad(p);
       if (v === "alta") return 0;
       if (v === "media") return 1;
       //Considero cualquier otra prioridad como baja
@@ -70,7 +71,7 @@ export default function TareasProyectoTabla(props) {
 
         {/*Mensaje si no hay tareas*/}
         {proyectoSeleccionado && !cargandoTareas && tareas.length === 0 && (
-          <p className="text-muted mb-0">Este proyecto todavia no tiene tareas.</p>
+          <p className="text-muted mb-0">Este proyecto todavía no tiene tareas.</p>
         )}
 
         {/*Lista de tareas cuando ya hay datos*/}
@@ -82,11 +83,13 @@ export default function TareasProyectoTabla(props) {
             </div>
             <ListGroup>
               {ordenarTareas(tareas).map((t) => {
+              const prioridadNormalizada = String(t.prioridad || "").trim().toLowerCase();
+              const comentariosTotal = Number(t.comentarios_count || 0);
               //Color y texto segun prioridad
               const prioridadVariant =
-                (t.prioridad || "").toLowerCase() === "alta"
+                prioridadNormalizada === "alta"
                   ? "danger"
-                  : (t.prioridad || "").toLowerCase() === "media"
+                  : prioridadNormalizada === "media"
                   ? "warning"
                   : "primary";
               //Color y texto segun estado
@@ -94,20 +97,20 @@ export default function TareasProyectoTabla(props) {
               const estadoVariant =
                 estadoLower === "completada"
                   ? "success"
-                  : estadoLower === "en progreso" || estadoLower === "en_progreso"
+                  : estadoLower === "en progreso"
                   ? "warning"
                   : "danger";
               const esCompletada = (t.estado || "").toLowerCase() === "completada";
               const estadoTexto = () => {
                 //Texto bonito para mostrar
                 const e = (t.estado || "").toLowerCase();
-                if (e === "en progreso" || e === "en_progreso") return "En progreso";
+                if (e === "en progreso") return "En progreso";
                 if (e === "completada") return "Completada";
                 return "Pendiente";
               };
               const prioridadTexto = () => {
                 //Texto bonito para prioridad
-                const p = (t.prioridad || "").toLowerCase();
+                const p = prioridadNormalizada;
                 if (p === "alta") return "Alta";
                 if (p === "media") return "Media";
                 return "Baja";
@@ -116,7 +119,7 @@ export default function TareasProyectoTabla(props) {
               const fondo =
                 esCompletada
                   ? "bg-light text-muted"
-                  : estadoLower === "en progreso" || estadoLower === "en_progreso"
+                  : estadoLower === "en progreso"
                   ? "bg-warning-subtle"
                   : "bg-danger-subtle";
               return (
@@ -133,7 +136,7 @@ export default function TareasProyectoTabla(props) {
                       )}
                       {t.fecha_limite && (
                         <div className="text-muted small">
-                          Fecha limite:{" "}
+                          Fecha límite:{" "}
                           {new Date(t.fecha_limite).toLocaleDateString("es-ES")}
                         </div>
                       )}
@@ -153,8 +156,7 @@ export default function TareasProyectoTabla(props) {
                       //Boton para pasar de pendiente a progreso o completada
                       const estadoLower = (t.estado || "").toLowerCase();
                       const estaCompletada = estadoLower === "completada";
-                      const estaEnProgreso =
-                        estadoLower === "en progreso" || estadoLower === "en_progreso";
+                      const estaEnProgreso = estadoLower === "en progreso";
                       const nextEstado = estaEnProgreso ? "Completada" : "En progreso";
                       const label = estaCompletada
                         ? "Completada"
@@ -190,9 +192,13 @@ export default function TareasProyectoTabla(props) {
                         Editar
                       </Button>
                     )}
-                    {/*Abrir comentarios*/}
+                    {/*Abrir comentarios si hay comentarios el boton esta solido*/}
                     <Button
-                      variant="outline-secondary"
+                      variant={
+                        Number(comentariosTotal || 0) > 0
+                          ? "secondary"
+                          : "outline-secondary"
+                      }
                       size="sm"
                       onClick={() => onSeleccionarTarea && onSeleccionarTarea(t)}
                     >

@@ -66,6 +66,13 @@ export async function getComentariosTarea(tarea_id) {
   return requestWithToken(`tareas.php?accion=comentarios&tarea_id=${tarea_id}`);
 }
 
+//Traigo el numero de comentarios de una tarea
+export async function getComentariosCount(tarea_id) {
+  return requestWithToken(
+    `tareas.php?accion=comentarios_count&tarea_id=${tarea_id}`
+  );
+}
+
 //Agrego un comentario a una tarea
 export async function crearComentarioTarea(tarea_id, texto) {
   return requestWithToken("tareas.php?accion=comentarios", {

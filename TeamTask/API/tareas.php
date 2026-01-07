@@ -59,7 +59,8 @@ if ($metodo === 'GET' && isset($_GET['proyecto_id'])) {
             ORDER BY t.id DESC");
             $sentSQL->execute([$proyectoId]);
         } else {
-            $sentSQL = $conn->prepare("SELECT t.*, GROUP_CONCAT(ta.usuario_id) AS usuario_ids FROM tareas t
+            $sentSQL = $conn->prepare("SELECT t.*, GROUP_CONCAT(ta.usuario_id) AS usuario_ids
+            FROM tareas t
             INNER JOIN tareas_asignadas ta ON t.id = ta.tarea_id
             WHERE t.proyecto_id = ? AND ta.usuario_id = ?
             GROUP BY t.id
@@ -126,6 +127,33 @@ if ($metodo === 'GET' && isset($_GET['accion']) && $_GET['accion'] === 'comentar
         $sentSQL->execute([$tareaId]);
         $comentarios = $sentSQL->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($comentarios);
+        exit;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            "mensaje" => "Error obteniendo comentarios",
+            //"error" => $e->getMessage()
+        ]);
+        exit;
+    }
+}
+
+//*****GET | Numero de comentarios de la tarea
+if ($metodo === 'GET' && isset($_GET['accion']) && $_GET['accion'] === 'comentarios_count') {
+    $tareaId = $_GET['tarea_id'] ?? null;
+    if (!$tareaId) {
+        http_response_code(400);
+        echo json_encode(["mensaje" => "Falta tarea_id"]);
+        exit;
+    }
+    try {
+        $sentSQL = $conn->prepare("SELECT COUNT(*) AS total FROM comentarios WHERE tarea_id = ?");
+        $sentSQL->execute([$tareaId]);
+        $fila = $sentSQL->fetch(PDO::FETCH_ASSOC);
+        echo json_encode([
+            "tarea_id" => (int)$tareaId,
+            "total" => (int)($fila['total'] ?? 0)
+        ]);
         exit;
     } catch (PDOException $e) {
         http_response_code(500);

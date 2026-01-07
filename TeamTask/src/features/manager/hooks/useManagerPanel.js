@@ -5,10 +5,7 @@ import * as api from "../../../services/api.jsx";
 //Ayudas para roles
 import { esAdministrador, esGerente } from "../../../services/formateos.js";
 //Textos bonitos para mostrar estado y prioridad
-import {
-  textoEstado,
-  textoPrioridad,
-} from "../../../services/formateos.js";
+import { normalizarTareaApi } from "../../../services/formateos.js";
 
 //Paso el estado al formato que espera la API
 const estadoParaApi = (estado) => {
@@ -27,17 +24,8 @@ const prioridadParaApi = (prioridad) => {
 };
 
 //Saco los ids de usuarios asignados de una tarea
-const obtenerUsuarioIds = (tarea) => {
-  if (!tarea) return [];
-  if (Array.isArray(tarea.usuarioIds)) return tarea.usuarioIds;
-  if (tarea.usuario_ids) {
-    return String(tarea.usuario_ids)
-      .split(",")
-      .map((n) => Number(n))
-      .filter((n) => !Number.isNaN(n));
-  }
-  return [];
-};
+const obtenerUsuarioIds = (tarea) =>
+  Array.isArray(tarea?.usuarioIds) ? tarea.usuarioIds : [];
 
 export function useManagerPanel() {
   //Manejo el estado del panel de manager y sus acciones
@@ -134,7 +122,18 @@ export function useManagerPanel() {
         api.getTareasPorProyecto(proyecto.id),
         api.getUsuariosPorProyecto(proyecto.id),
       ]);
-      setTareas(data || []);
+      const tareasBase = (data || []).map(normalizarTareaApi);
+      const tareasConComentarios = await Promise.all(
+        tareasBase.map(async (t) => {
+          try {
+            const res = await api.getComentariosCount(t.id);
+            return { ...t, comentarios_count: Number(res?.total || 0) };
+          } catch {
+            return { ...t, comentarios_count: 0 };
+          }
+        })
+      );
+      setTareas(tareasConComentarios);
       setUsuariosProyecto(usuarios || []);
     } catch (e) {
       console.error(e);
@@ -155,8 +154,11 @@ export function useManagerPanel() {
       console.error(e);
       setError(e.message || "No se pudo actualizar la tarea");
     }
+    const tareaIdStr = String(tareaId);
     setTareas((prev) =>
-      prev.map((t) => (t.id === tareaId ? { ...t, estado: estado } : t))
+      prev.map((t) =>
+        String(t.id) === tareaIdStr ? { ...t, estado: estado } : t
+      )
     );
   };
 
@@ -193,8 +195,8 @@ export function useManagerPanel() {
         proyecto_id: proyectoSeleccionado.id,
         titulo: data.titulo,
         descripcion: data.descripcion,
-        estado: textoEstado(data.estado),
-        prioridad: textoPrioridad(data.prioridad),
+        estado: data.estado,
+        prioridad: data.prioridad,
         fecha_limite: data.fecha_limite || null,
         usuarioIds,
       };
@@ -249,8 +251,8 @@ export function useManagerPanel() {
                 ...t,
                 titulo: data.titulo,
                 descripcion: data.descripcion,
-                estado: textoEstado(data.estado),
-                prioridad: textoPrioridad(data.prioridad),
+                estado: data.estado,
+                prioridad: data.prioridad,
                 fecha_limite: data.fecha_limite || null,
                 usuarioIds: nuevosIds,
               }
@@ -274,18 +276,17 @@ export function useManagerPanel() {
         const ahora = new Date();
         const hace7 = new Date();
         hace7.setDate(ahora.getDate() - 7);
-        const pendientes = (data || []).filter(
+        const tareasNormalizadas = (data || []).map(normalizarTareaApi);
+        const pendientes = tareasNormalizadas.filter(
           (t) => (t.estado || "").toLowerCase() === "pendiente"
         ).length;
-        const enProgreso = (data || []).filter(
-          (t) =>
-            (t.estado || "").toLowerCase() === "en progreso" ||
-            (t.estado || "").toLowerCase() === "en_progreso"
+        const enProgreso = tareasNormalizadas.filter(
+          (t) => (t.estado || "").toLowerCase() === "en progreso"
         ).length;
-        const completadasSemana = (data || []).filter((t) => {
+        const completadasSemana = tareasNormalizadas.filter((t) => {
           const est = (t.estado || "").toLowerCase();
           if (est !== "completada") return false;
-          const fechaStr = t.fecha_creacion || t.fecha || t.fecha_limite;
+          const fechaStr = t.fecha_creacion;
           if (!fechaStr) return true;
           const fecha = new Date(fechaStr);
           return fecha >= hace7;

@@ -1,23 +1,10 @@
 //Textos bonitos para estado y prioridad
-import {
-  textoEstado,
-  textoPrioridad,
-} from "../../../services/formateos.js";
+import { normalizarTareaApi } from "../../../services/formateos.js";
 //Llamadas al backend
 import * as api from "../../../services/api.jsx";
 
 //Obtengo ids de usuario desde varias formas posibles en la tarea
-const obtenerUsuarioIds = (t) => {
-  if (!t) return [];
-  if (Array.isArray(t.usuarioIds)) return t.usuarioIds;
-  if (t.usuario_ids) {
-    return String(t.usuario_ids)
-      .split(",")
-      .map((n) => Number(n))
-      .filter((n) => !Number.isNaN(n));
-  }
-  return [];
-};
+const obtenerUsuarioIds = (t) => (Array.isArray(t?.usuarioIds) ? t.usuarioIds : []);
 
 //Paso el estado a la clave esperada por la API
 const estadoParaApi = (estado) => {
@@ -34,27 +21,35 @@ export function crearAccionesProyectos(ctx) {
     ctx.setMensajeProyecto("");
     ctx.setErrorProyecto("");
 
-    if (!ctx.nombreProyecto.trim()) {
+    const nombre = ctx.nombreProyecto.trim();
+    if (!nombre) {
       ctx.setErrorProyecto("El nombre del proyecto es obligatorio");
       return;
     }
 
-    try {
-      const creado = await api.crearProyecto(
-        ctx.nombreProyecto,
-        ctx.descripcionProyecto
+    const yaExiste = ctx.proyectos.find(
+      (p) => p.nombre && p.nombre.trim().toLowerCase() === nombre.toLowerCase()
+    );
+    if (yaExiste) {
+      ctx.setErrorProyecto(
+        "No puedes crear un proyecto con el mismo nombre que otro"
       );
+      return;
+    }
+
+    try {
+      const creado = await api.crearProyecto(nombre, ctx.descripcionProyecto);
       const nuevo =
         creado && creado.id
           ? {
               id: creado.id,
-              nombre: creado.nombre || ctx.nombreProyecto,
+              nombre: creado.nombre || nombre,
               descripcion: creado.descripcion || ctx.descripcionProyecto,
               tareasAbiertas: 0,
             }
           : {
               id: Date.now(),
-              nombre: ctx.nombreProyecto,
+              nombre,
               descripcion: ctx.descripcionProyecto,
               tareasAbiertas: 0,
             };
@@ -120,7 +115,7 @@ export function crearAccionesProyectos(ctx) {
   //Cambio la descripcion del proyecto
   const handleCambiarDescripcion = (proyectoId, nombreActual) => {
     const nuevaDescripcion = window.prompt(
-      "Nueva descripcion del proyecto?",
+      "Nueva descripción del proyecto?",
       ""
     );
     if (nuevaDescripcion === null) return;
@@ -154,12 +149,7 @@ export function crearAccionesProyectos(ctx) {
 
       ctx.setTareas((prev) => ({
         ...prev,
-        [proyecto.id]: (tareasApi || []).map((t) => ({
-          ...t,
-          prioridad: textoPrioridad(t.prioridad),
-          estado: textoEstado(t.estado),
-          usuarioIds: obtenerUsuarioIds(t),
-        })),
+        [proyecto.id]: (tareasApi || []).map(normalizarTareaApi),
       }));
       ctx.setAsignaciones((prev) => ({
         ...prev,
@@ -218,8 +208,8 @@ export function crearAccionesProyectos(ctx) {
         const normalizada = {
           ...t,
           ...cambios,
-          prioridad: textoPrioridad(cambios.prioridad),
-          estado: textoEstado(cambios.estado),
+          prioridad: cambios.prioridad,
+          estado: cambios.estado,
           fecha_limite: cambios.fecha_limite ?? t.fecha_limite,
         };
         if (normalizada.usuarioIds) {
@@ -261,8 +251,8 @@ export function crearAccionesProyectos(ctx) {
       titulo: tareaData.titulo.trim(),
       descripcion: (tareaData.descripcion || "").trim(),
       usuarioIds: usuariosValidos,
-      prioridad: textoPrioridad(tareaData.prioridad),
-      estado: textoEstado(tareaData.estado),
+      prioridad: tareaData.prioridad,
+      estado: tareaData.estado,
     };
 
     try {

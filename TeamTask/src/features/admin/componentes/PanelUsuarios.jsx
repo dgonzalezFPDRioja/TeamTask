@@ -88,7 +88,7 @@ export default function PanelUsuarios(props) {
               {/*Mensaje si no hay usuarios*/}
               {usuarios.length === 0 && (
                 <ListGroup.Item className="text-muted">
-                  No hay usuarios todavia.
+                  No hay usuarios todavía.
                 </ListGroup.Item>
               )}
             </ListGroup>
